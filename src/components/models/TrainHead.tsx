@@ -142,7 +142,7 @@ type GLTFResult = GLTF &
   }
 
 export function TrainHead({ groupRef, shieldActive }: TrainProps) {
-  const { nodes, materials } = useGLTF('./models/train-locomotive-b.glb') as GLTFResult
+  const { nodes, materials } = useGLTF('/choo-choo-chain/models/train-locomotive-b.glb') as GLTFResult
   return (
     <>
       <group ref={groupRef} dispose={null} scale={0.7}>
