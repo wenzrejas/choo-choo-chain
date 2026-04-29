@@ -1,34 +1,31 @@
 import { Suspense, type JSX } from 'react'
-import { Canvas }   from '@react-three/fiber'
-import { Sky } from '@react-three/drei'
-import { Perf } from 'r3f-perf'
+import { Canvas } from '@react-three/fiber'
+import { Sky }    from '@react-three/drei'
 
-import { useMouseSteering } from '../../hooks/useMouseSteering'
-import { useGameStore }     from '../../store/gameStore'
+import { useMouseSteering }              from '../../hooks/useMouseSteering'
+import { useGameStore }                  from '../../store/gameStore'
 
-import Ground           from './Ground'
-import Train            from './Train'
-import WagonCollectible from './WagonCollectible'
-import Obstacle         from './Obstacle'
-import PowerUp          from './PowerUp'
-import FollowCamera     from './FollowCamera'
-import ZoneManager      from '../../zones/ZoneManager'
-import type { MouseNDC } from '../../types'
+import Ground                            from './Ground'
+import Train                             from './Train'
+import { ObstacleInstances }             from './Obstacle'
+import PowerUp, { PowerUpAnimator }      from './PowerUp'
+import FollowCamera                      from './FollowCamera'
+import ZoneManager                       from '../../zones/ZoneManager'
+import { WagonInstances }                from '../models/Wagon'
+import type { MouseNDC }                 from '../../types'
 
 function Scene({ mouseRef }: { mouseRef: React.MutableRefObject<MouseNDC> }): JSX.Element {
-  const wagons    = useGameStore((s) => s.wagons)
-  const obstacles = useGameStore((s) => s.obstacles)
-  const powerups  = useGameStore((s) => s.powerups)
+  // Only powerups still need a per-item React component (individual bob/spin).
+  // Wagons and obstacles are fully instanced and read the store themselves.
+  const powerups = useGameStore((s) => s.powerups)
 
   return (
     <>
-      {/* ── Systems (no render output) ─────────────────────────────────── */}
-      <Perf />
+      {/* ── Systems ────────────────────────────────────────────────────── */}
       <ZoneManager />
       <FollowCamera />
 
       {/* ── Lighting ───────────────────────────────────────────────────── */}
-      {/* Kenney style: bright warm sun, high ambient, coloured hemisphere */}
       <ambientLight intensity={1.1} color="#fffdf0" />
       <directionalLight
         position={[30, 50, 20]}
@@ -44,11 +41,9 @@ function Scene({ mouseRef }: { mouseRef: React.MutableRefObject<MouseNDC> }): JS
         shadow-camera-bottom={-60}
         shadow-bias={-0.0004}
       />
-      {/* Sky/ground hemisphere — sky blue bleeds into bright grass fill */}
       <hemisphereLight args={['#c9e8ff', '#7ec850', 0.7]} />
 
-      {/* ── Environment ────────────────────────────────────────────────── */}
-      {/* Pale daytime sky — no stars */}
+      {/* ── Sky ────────────────────────────────────────────────────────── */}
       <Sky
         distance={4500}
         sunPosition={[1, 0.4, 0.2]}
@@ -64,15 +59,12 @@ function Scene({ mouseRef }: { mouseRef: React.MutableRefObject<MouseNDC> }): JS
       <Ground />
       <Train mouseRef={mouseRef} />
 
-      {/* ── Entities (driven by Zustand store, populated by ZoneManager) ─ */}
-      {wagons.map((w) => (
-        <WagonCollectible key={w.id} {...w} />
-      ))}
+      {/* ── Instanced entity renderers (read store internally) ──────────── */}
+      <WagonInstances />
+      <ObstacleInstances />
 
-      {obstacles.filter((o) => !o.destroyed).map((o) => (
-        <Obstacle key={o.id} {...o} />
-      ))}
-
+      {/* ── Per-item components (still need individual animation) ────────── */}
+      <PowerUpAnimator />
       {powerups.map((p) => (
         <PowerUp key={p.id} {...p} />
       ))}

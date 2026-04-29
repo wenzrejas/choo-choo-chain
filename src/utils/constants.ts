@@ -1,10 +1,10 @@
 import type { WagonType, ObstacleType, PowerUpType } from '../types'
 
 // ─── Train ──────────────────────────────────────────────────────────────────
-export const TRAIN_BASE_SPEED       = 6    as const
+export const TRAIN_BASE_SPEED       = 8    as const
 export const TRAIN_BOOST_SPEED      = 14   as const
 export const TRAIN_STEER_STRENGTH   = 2  as const
-export const TRAIN_SEGMENT_GAP      = 1.1  as const
+export const TRAIN_SEGMENT_GAP      = 1.3  as const
 
 // ─── Energy ─────────────────────────────────────────────────────────────────
 export const ENERGY_MAX             = 100  as const
@@ -54,10 +54,10 @@ export const COLLISION_RADII = {
 
 // ─── Camera ──────────────────────────────────────────────────────────────────
 export const CAMERA_DISTANCE      = 14    as const
-export const CAMERA_HEIGHT        = 28    as const
+export const CAMERA_HEIGHT        = 26    as const
 export const CAMERA_POS_LAG       = 0.06 as const
 export const CAMERA_LOOK_LAG      = 0.14 as const
-export const CAMERA_LOOK_AHEAD    = 4   as const
+export const CAMERA_LOOK_AHEAD    = 2   as const
 export const CAMERA_ROLL_STRENGTH = 0 as const
 export const CAMERA_ROLL_LAG      = 0 as const
 export const CAMERA_BASE_FOV      = 70   as const

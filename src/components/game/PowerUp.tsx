@@ -1,79 +1,125 @@
-import { useRef } from 'react'
+import { useRef, type JSX } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { POWERUP_COLORS } from '../../utils/constants'
 import type { PowerUpEntity } from '../../types'
 
-/**
- * Kenney-style power-ups.
- * Clean, bright flat colours — no emissive glow, no point lights.
- * Simple geometric shapes that read clearly from a top-down angle.
- * A gentle bob + slow rotation keeps them visually alive.
- */
+// ─── Geometries (module-level, never reallocated) ─────────────────────────────
+const battBodyGeo   = new THREE.CylinderGeometry(0.34, 0.34, 1.0,  16)
+const battCapGeo    = new THREE.CylinderGeometry(0.37, 0.37, 0.1,  16)
+const battTermGeo   = new THREE.CylinderGeometry(0.14, 0.14, 0.18, 16)
+const clockBodyGeo  = new THREE.CylinderGeometry(0.6, 0.6, 0.26, 20)
+const clockFaceGeo  = new THREE.CircleGeometry(0.54, 20)
+const handLongGeo   = new THREE.BoxGeometry(0.07, 0.38, 0.07)
+const handShortGeo  = new THREE.BoxGeometry(0.07, 0.24, 0.07)
+const clockDotGeo   = new THREE.CylinderGeometry(0.06, 0.06, 0.04, 8)
+const shieldBodyGeo = new THREE.CylinderGeometry(0.62, 0.54, 0.72, 6)
+const shieldTopGeo  = new THREE.CylinderGeometry(0.42, 0.62, 0.14, 6)
+const crossVGeo     = new THREE.PlaneGeometry(0.14, 0.56)
+const crossHGeo     = new THREE.PlaneGeometry(0.56, 0.14)
+const ringInnerGeo  = new THREE.RingGeometry(0.78, 0.90, 24)
+const ringOuterGeo  = new THREE.RingGeometry(1.05, 1.18, 24)
+const shadowGeo     = new THREE.CircleGeometry(0.8, 20)
 
-// ─── Geometries ───────────────────────────────────────────────────────────────
-const energyGeo    = new THREE.OctahedronGeometry(0.48, 0)
-const clockBodyGeo = new THREE.CylinderGeometry(0.42, 0.42, 0.18, 16)
-const clockFaceGeo = new THREE.CircleGeometry(0.38, 16)
-const shieldGeo    = new THREE.CylinderGeometry(0.44, 0.38, 0.52, 6)   // hexagon
-
-const handLongGeo  = new THREE.BoxGeometry(0.05, 0.28, 0.05)
-const handShortGeo = new THREE.BoxGeometry(0.05, 0.18, 0.05)
-
-const shadowGeo    = new THREE.CircleGeometry(0.55, 24)
-const shadowMat    = new THREE.MeshBasicMaterial({
-  color: '#000', transparent: true, opacity: 0.1, depthWrite: false,
+// ─── Shared emissive materials (one per power-up type) ────────────────────────
+// All instances of the same type share the same material — emissiveIntensity
+// is driven once per frame by PowerUpAnimator, not N times per powerup.
+const energyMat = new THREE.MeshStandardMaterial({
+  color: '#29b6f6', emissive: '#0288d1', emissiveIntensity: 0.8,
+  roughness: 0.3, metalness: 0.2,
+})
+const battCapMat = new THREE.MeshStandardMaterial({
+  color: '#b0bec5', roughness: 0.3, metalness: 0.7,
+})
+const clockBodyMat = new THREE.MeshStandardMaterial({
+  color: '#448aff', emissive: '#2962ff', emissiveIntensity: 0.8,
+  roughness: 0.5, metalness: 0,
+})
+const shieldMat = new THREE.MeshStandardMaterial({
+  color: '#ff6d00', emissive: '#e65100', emissiveIntensity: 0.8,
+  roughness: 0.4, metalness: 0,
 })
 
-// ─── Energy pickup (octahedron — lightning bolt stand-in) ─────────────────────
-function EnergyPickup({ color }: { color: string }): JSX.Element {
-  return (
-    <mesh geometry={energyGeo} castShadow>
-      <meshStandardMaterial color={color} roughness={0.8} metalness={0} />
-    </mesh>
-  )
+// Non-emissive shared materials
+const clockFaceMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 1, metalness: 0 })
+const clockHandMat = new THREE.MeshStandardMaterial({ color: '#1a237e', roughness: 1, metalness: 0 })
+const clockDotMat  = new THREE.MeshStandardMaterial({ color: '#e53935', roughness: 1, metalness: 0 })
+const crossMat     = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.9, side: THREE.DoubleSide })
+const shadowMat    = new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: 0.16, depthWrite: false })
+
+// Per-type glow ring materials (inner/outer × 3 types = 6 materials)
+function ringMat(color: string, opacity: number) {
+  return new THREE.MeshBasicMaterial({ color, transparent: true, opacity, side: THREE.DoubleSide, depthWrite: false })
+}
+const RING_MAT: Record<string, [THREE.MeshBasicMaterial, THREE.MeshBasicMaterial,
+                                  THREE.MeshBasicMaterial, THREE.MeshBasicMaterial]> = {
+  energy: [ringMat('#29b6f6', 0.44), ringMat('#29b6f6', 0.22), ringMat('#29b6f6', 0.10), ringMat('#29b6f6', 0.05)],
+  clock:  [ringMat('#448aff', 0.44), ringMat('#448aff', 0.22), ringMat('#448aff', 0.10), ringMat('#448aff', 0.05)],
+  shield: [ringMat('#ff6d00', 0.44), ringMat('#ff6d00', 0.22), ringMat('#ff6d00', 0.10), ringMat('#ff6d00', 0.05)],
 }
 
-// ─── Clock pickup ─────────────────────────────────────────────────────────────
-function ClockPickup({ color }: { color: string }): JSX.Element {
+const EMISSIVE_MATS = [energyMat, clockBodyMat, shieldMat]
+
+// ─── PowerUpAnimator ──────────────────────────────────────────────────────────
+// Mount once in the scene. Updates shared emissive materials a single time
+// per frame regardless of how many power-ups are active.
+export function PowerUpAnimator(): null {
+  useFrame(({ clock }) => {
+    const intensity = 0.4 + Math.sin(clock.getElapsedTime() * 2.4) * 0.8
+    for (const mat of EMISSIVE_MATS) mat.emissiveIntensity = intensity
+  })
+  return null
+}
+
+// ─── Shapes ───────────────────────────────────────────────────────────────────
+
+function EnergyShape(): JSX.Element {
   return (
     <group>
-      {/* Body disc */}
-      <mesh geometry={clockBodyGeo} castShadow>
-        <meshStandardMaterial color={color} roughness={1} metalness={0} />
-      </mesh>
-      {/* White face */}
-      <mesh geometry={clockFaceGeo} position={[0, 0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <meshStandardMaterial color="#ffffff" roughness={1} metalness={0} />
-      </mesh>
-      {/* Hour hand */}
-      <mesh geometry={handShortGeo} position={[0, 0.12, -0.06]} rotation={[0, 0, Math.PI / 6]}>
-        <meshStandardMaterial color="#333" roughness={1} metalness={0} />
-      </mesh>
-      {/* Minute hand */}
-      <mesh geometry={handLongGeo} position={[0.06, 0.12, 0]}>
-        <meshStandardMaterial color="#333" roughness={1} metalness={0} />
-      </mesh>
+      <mesh geometry={battBodyGeo} material={energyMat}  castShadow />
+      <mesh geometry={battCapGeo}  material={battCapMat} position={[0,  0.55, 0]} castShadow />
+      <mesh geometry={battCapGeo}  material={battCapMat} position={[0, -0.55, 0]} castShadow />
+      <mesh geometry={battTermGeo} material={battCapMat} position={[0,  0.69, 0]} castShadow />
     </group>
   )
 }
 
-// ─── Shield pickup (hexagonal prism — reads as shield shape) ──────────────────
-function ShieldPickup({ color }: { color: string }): JSX.Element {
+function ClockShape(): JSX.Element {
   return (
     <group>
-      <mesh geometry={shieldGeo} castShadow>
-        <meshStandardMaterial color={color} roughness={0.85} metalness={0} />
-      </mesh>
-      {/* White cross mark on top */}
-      <mesh position={[0, 0.28, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[0.12, 0.44]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.75} />
-      </mesh>
-      <mesh position={[0, 0.28, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[0.44, 0.12]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.75} />
-      </mesh>
+      <mesh geometry={clockBodyGeo} material={clockBodyMat} castShadow />
+      <mesh geometry={clockFaceGeo} material={clockFaceMat}
+            position={[0, 0.14, 0]} rotation={[-Math.PI / 2, 0, 0]} />
+      <mesh geometry={handShortGeo} material={clockHandMat} position={[-0.08, 0.16, 0.04]} />
+      <mesh geometry={handLongGeo}  material={clockHandMat} position={[0,     0.16, -0.1]} />
+      <mesh geometry={clockDotGeo}  material={clockDotMat}  position={[0,     0.17,  0]} />
+    </group>
+  )
+}
+
+function ShieldShape(): JSX.Element {
+  return (
+    <group>
+      <mesh geometry={shieldBodyGeo} material={shieldMat} castShadow />
+      <mesh geometry={shieldTopGeo}  material={shieldMat} position={[0, 0.43, 0]} castShadow />
+      <mesh geometry={crossVGeo} material={crossMat} position={[0, 0.52, 0]} rotation={[-Math.PI / 2, 0, 0]} />
+      <mesh geometry={crossHGeo} material={crossMat} position={[0, 0.52, 0]} rotation={[-Math.PI / 2, 0, 0]} />
+    </group>
+  )
+}
+
+// ─── Glow rings ───────────────────────────────────────────────────────────────
+
+function GlowRings({ type, innerScale, outerScale, matIdx }: {
+  type:       string
+  innerScale: number
+  outerScale: number
+  matIdx:     0 | 2   // 0 = animated inner pair, 2 = static outer pair
+}): JSX.Element {
+  const mats = RING_MAT[type] ?? RING_MAT.energy
+  return (
+    <group rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+      <mesh geometry={ringInnerGeo} material={mats[matIdx]}     scale={[innerScale, innerScale, 1]} />
+      <mesh geometry={ringOuterGeo} material={mats[matIdx + 1]} scale={[outerScale, outerScale, 1]} />
     </group>
   )
 }
@@ -83,29 +129,38 @@ function ShieldPickup({ color }: { color: string }): JSX.Element {
 type Props = PowerUpEntity
 
 export default function PowerUp({ type, position }: Props): JSX.Element {
-  const groupRef = useRef<THREE.Group>(null)
-  const color    = POWERUP_COLORS[type]
+  const bodyRef      = useRef<THREE.Group>(null)
+  const innerRingRef = useRef<THREE.Group>(null)
 
   useFrame(({ clock }) => {
-    if (!groupRef.current) return
     const t = clock.getElapsedTime()
-    groupRef.current.position.y = 0.55 + Math.sin(t * 1.8 + position.z * 0.3) * 0.1
-    groupRef.current.rotation.y = t * 0.9
+
+    if (bodyRef.current) {
+      bodyRef.current.position.y = 0.65 + Math.sin(t * 1.6 + position.x) * 0.14
+      bodyRef.current.rotation.y = t * 0.8
+    }
+
+    if (innerRingRef.current) {
+      const s = 0.92 + Math.sin(t * 1.8) * 0.08
+      innerRingRef.current.scale.setScalar(s)
+    }
   })
 
   return (
     <group position={[position.x, 0, position.z]}>
-      <group ref={groupRef}>
-        {type === 'energy' && <EnergyPickup color={color} />}
-        {type === 'clock'  && <ClockPickup  color={color} />}
-        {type === 'shield' && <ShieldPickup color={color} />}
+      <group ref={bodyRef}>
+        {type === 'energy' && <EnergyShape />}
+        {type === 'clock'  && <ClockShape  />}
+        {type === 'shield' && <ShieldShape />}
       </group>
 
-      {/* Ground shadow decal */}
+      <group ref={innerRingRef}>
+        <GlowRings type={type} innerScale={1}    outerScale={1}    matIdx={0} />
+      </group>
+      <GlowRings type={type} innerScale={1.18} outerScale={1.22} matIdx={2} />
+
       <mesh geometry={shadowGeo} material={shadowMat}
-        rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, 0.01, 0]}
-      />
+            rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]} />
     </group>
   )
 }

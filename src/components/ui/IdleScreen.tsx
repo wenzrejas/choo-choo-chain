@@ -1,33 +1,33 @@
 import { useState } from 'react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, JSX } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import { sfxClick } from '../../audio/sfx'
 import { AudioEngine } from '../../audio/AudioEngine'
 
 // ─── Sub-modals ───────────────────────────────────────────────────────────────
 
-function HowToPlayModal({ onClose }: { onClose: () => void }): JSX.Element {
-  return (
-    <div style={styles.overlay}>
-      <div style={styles.modal}>
-        <h2 style={styles.modalTitle}>HOW TO PLAY</h2>
-        <ul style={styles.list}>
-          <li>🚂 Your train moves forward automatically</li>
-          <li>🖱️ Move the mouse to steer</li>
-          <li>🟤 Collect <b>Copper</b> wagons — 1 pt</li>
-          <li>⬜ Collect <b>Silver</b> wagons — 3 pts</li>
-          <li>🟡 Collect <b>Gold</b> wagons — 7 pts</li>
-          <li>🌲 Avoid trees, bushes &amp; boulders</li>
-          <li>☠️ Don&apos;t hit your own tail!</li>
-          <li>⚡ Collect <b>Energy</b>, then hold mouse to boost speed</li>
-          <li>🕐 Collect <b>Clock</b> to add bonus time</li>
-          <li>🛡️ Collect <b>Shield</b> to destroy obstacles on contact</li>
-        </ul>
-        <button style={styles.secondaryBtn} onClick={() => { sfxClick(); onClose() }}>BACK</button>
-      </div>
-    </div>
-  )
-}
+// function HowToPlayModal({ onClose }: { onClose: () => void }): JSX.Element {
+//   return (
+//     <div style={styles.overlay}>
+//       <div style={styles.modal}>
+//         <h2 style={styles.modalTitle}>HOW TO PLAY</h2>
+//         <ul style={styles.list}>
+//           <li>🚂 Your train moves forward automatically</li>
+//           <li>🖱️ Move the mouse to steer</li>
+//           <li>🟤 Collect <b>Copper</b> wagons — 1 pt</li>
+//           <li>⬜ Collect <b>Silver</b> wagons — 3 pts</li>
+//           <li>🟡 Collect <b>Gold</b> wagons — 7 pts</li>
+//           <li>🌲 Avoid trees, bushes &amp; boulders</li>
+//           <li>☠️ Don&apos;t hit your own tail!</li>
+//           <li>⚡ Collect <b>Energy</b>, then hold mouse to boost speed</li>
+//           <li>🕐 Collect <b>Clock</b> to add bonus time</li>
+//           <li>🛡️ Collect <b>Shield</b> to destroy obstacles on contact</li>
+//         </ul>
+//         <button style={styles.secondaryBtn} onClick={() => { sfxClick(); onClose() }}>BACK</button>
+//       </div>
+//     </div>
+//   )
+// }
 
 function CreditsModal({ onClose }: { onClose: () => void }): JSX.Element {
   return (
@@ -53,19 +53,16 @@ export default function IdleScreen(): JSX.Element {
 
   return (
     <div style={styles.root}>
-      <div style={styles.bgGlow} />
       <div style={styles.content}>
         <div style={styles.logo}>WENZ</div>
         <div style={styles.subtitle}>TRAIN RUSH</div>
         <div style={styles.buttonGroup}>
           <button style={styles.primaryBtn}   onClick={() => { AudioEngine.resume(); sfxClick(); startGame() }}>START</button>
-          <button style={styles.secondaryBtn} onClick={() => { sfxClick(); setModal('howto') }}>HOW TO PLAY</button>
-          <button style={styles.secondaryBtn} onClick={() => { sfxClick(); setModal('credits') }}>CREDITS</button>
         </div>
       </div>
 
-      {modal === 'howto'   && <HowToPlayModal onClose={() => setModal(null)} />}
-      {modal === 'credits' && <CreditsModal   onClose={() => setModal(null)} />}
+      {/* {modal === 'howto'   && <HowToPlayModal onClose={() => setModal(null)} />} */}
+      {/* {modal === 'credits' && <CreditsModal   onClose={() => setModal(null)} />} */}
     </div>
   )
 }
@@ -81,18 +78,12 @@ const styles = {
     userSelect: 'none',
   } satisfies CSSProperties,
 
-  bgGlow: {
-    position: 'absolute', inset: 0, pointerEvents: 'none',
-    background: 'radial-gradient(ellipse 60% 40% at 50% 50%, rgba(0,200,80,0.08) 0%, transparent 70%)',
-  } satisfies CSSProperties,
-
   content: {
     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
   } satisfies CSSProperties,
 
   logo: {
     fontSize: 96, fontWeight: 900, letterSpacing: 24, color: '#fff',
-    textShadow: '0 0 40px rgba(0,255,100,0.4), 0 0 80px rgba(0,255,100,0.15)',
   } satisfies CSSProperties,
 
   subtitle: {

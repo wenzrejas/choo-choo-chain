@@ -35,8 +35,7 @@ export default function FollowCamera(): null {
   const rollRef       = useRef(0)
   const readyRef      = useRef(false)
 
-  useFrame((_, delta) => {
-    const dt    = Math.min(Math.max(delta, 0.001), 0.05) // clamp: never 0, never huge
+  useFrame(() => {
     const pos   = trainPosRef.current
     const angle = trainAngleRef.current
     const speed = trainSpeedRef.current

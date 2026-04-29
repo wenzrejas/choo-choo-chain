@@ -179,15 +179,17 @@ export function generateZoneContent(zx: number, zz: number): ZoneContent {
     }
     if (!pos) continue   // couldn't place obstacle — skip slot
 
-    const type = OBSTACLE_TYPES[
-      Math.floor(rng() * OBSTACLE_TYPES.length)
-    ] as ObstacleType
+    const type     = OBSTACLE_TYPES[Math.floor(rng() * OBSTACLE_TYPES.length)] as ObstacleType
+    const variant  = Math.floor(rng() * 3)
+    const rotation = rng() * Math.PI * 2
 
     content.obstacles.push({
       id:        nextId(),
       type,
       position:  pos,
       destroyed: false,
+      variant,
+      rotation,
     })
   }
 

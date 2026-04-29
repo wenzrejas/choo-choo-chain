@@ -20,6 +20,8 @@ export interface ObstacleEntity {
   type:      ObstacleType
   position:  THREE.Vector3
   destroyed: boolean
+  variant:   number   // 0-2
+  rotation:  number   // Y rotation in radians
 }
 
 export interface PowerUpEntity {

@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, JSX } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import { WAGON_POINTS } from '../../utils/constants'
 import { sfxClick } from '../../audio/sfx'

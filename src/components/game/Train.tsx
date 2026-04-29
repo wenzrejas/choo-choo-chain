@@ -18,10 +18,9 @@ import {
   TRAIN_SEGMENT_GAP,
   ENERGY_DRAIN_RATE,
   COLLISION_RADII,
-  WAGON_COLORS,
 } from '../../utils/constants'
 import { angleDelta, distXZ, distXZRaw } from '../../utils/math'
-import type { MouseNDC, WagonType } from '../../types'
+import type { MouseNDC } from '../../types'
 import {
   sfxWagonCollect,
   sfxObstacleHit,
@@ -31,6 +30,8 @@ import {
   sfxClockBonus,
   sfxBoostStart,
 } from '../../audio/sfx'
+import { TrainHead } from '../models/TrainHead'
+import { useWagonGLTF, TYPE_COLORS, cargoInstanceMat } from '../models/Wagon'
 
 // ─── Tail history parameters ──────────────────────────────────────────────────
 const SAMPLES_PER_GAP     = 10
@@ -38,107 +39,11 @@ const SAMPLE_STEP         = TRAIN_SEGMENT_GAP / SAMPLES_PER_GAP
 const HISTORY_PER_SEGMENT = SAMPLES_PER_GAP
 const MAX_TAIL            = 80
 
-// ─── Shared geometry / materials (module-level, never recreated) ──────────────
-const LOCO_GEO    = new THREE.BoxGeometry(0.9, 0.7, 1.6)
-const SEG_GEO     = new THREE.BoxGeometry(0.8, 0.55, 1.1)
-const WHEEL_GEO   = new THREE.CylinderGeometry(0.13, 0.13, 0.12, 8)
-const CHIMNEY_GEO = new THREE.CylinderGeometry(0.11, 0.15, 0.38, 8)
-
-// ── Kenney-style materials: flat matte, roughness 1, metalness 0 ──────────────
-// Locomotive body: bold Kenney red — same hue as the iconic Kenney train kit
-const LOCO_MAT    = new THREE.MeshStandardMaterial({ color: '#e53935', roughness: 1, metalness: 0 })
-// Roof stripe / cab — slightly darker red for contrast
-const ROOF_MAT    = new THREE.MeshStandardMaterial({ color: '#b71c1c', roughness: 1, metalness: 0 })
-// Wheels: dark charcoal — still readable against bright ground
-const WHEEL_MAT   = new THREE.MeshStandardMaterial({ color: '#424242', roughness: 1, metalness: 0 })
-// Chimney: near-black to pop against the bright scene
-const CHIMNEY_MAT = new THREE.MeshStandardMaterial({ color: '#212121', roughness: 1, metalness: 0 })
-// Cabin windows: cream/off-white
-const WINDOW_MAT  = new THREE.MeshStandardMaterial({ color: '#fff9c4', roughness: 1, metalness: 0 })
-
-/**
- * White base for per-instance colour via setColorAt().
- * Flat matte — no specular highlights on the snake tail.
- */
-const SEG_MAT = new THREE.MeshStandardMaterial({
-  color:     '#ffffff',
-  roughness: 1,
-  metalness: 0,
-})
-
-// Pre-built colour objects (avoids per-frame allocation)
-const SEGMENT_COLORS: Record<WagonType, THREE.Color> = {
-  copper: new THREE.Color(WAGON_COLORS.copper),
-  silver: new THREE.Color(WAGON_COLORS.silver),
-  gold:   new THREE.Color(WAGON_COLORS.gold),
-}
-
 // Module-level scratch objects (never reallocated)
 const _dummy       = new THREE.Object3D()
 const _raycaster   = new THREE.Raycaster()
 const _groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
 const _mouseWorld  = new THREE.Vector3()
-
-// ─── Locomotive visual ────────────────────────────────────────────────────────
-interface LocoProps {
-  groupRef:     React.RefObject<THREE.Group>
-  shieldActive: boolean
-}
-
-function Locomotive({ groupRef, shieldActive }: LocoProps): JSX.Element {
-  const wheelPositions: [number, number][] = [
-    [-0.42, 0.38], [0.42, 0.38], [-0.42, -0.38], [0.42, -0.38],
-  ]
-  return (
-    <group ref={groupRef}>
-      {/* Main body — bold Kenney red */}
-      <mesh geometry={LOCO_GEO} material={LOCO_MAT} castShadow receiveShadow />
-
-      {/* Darker red roof stripe for visual depth */}
-      <mesh material={ROOF_MAT} position={[0, 0.4, 0]} castShadow>
-        <boxGeometry args={[0.88, 0.08, 1.58]} />
-      </mesh>
-
-      {/* Cabin / cab — rear section slightly taller */}
-      <mesh material={ROOF_MAT} position={[0, 0.5, -0.36]} castShadow>
-        <boxGeometry args={[0.72, 0.28, 0.72]} />
-      </mesh>
-
-      {/* Cabin window — cream rectangle */}
-      <mesh material={WINDOW_MAT} position={[0, 0.52, -0.73]}>
-        <boxGeometry args={[0.42, 0.22, 0.04]} />
-      </mesh>
-
-      {/* Chimney */}
-      <mesh geometry={CHIMNEY_GEO} material={CHIMNEY_MAT} position={[0, 0.62, 0.46]} castShadow />
-
-      {/* Boiler front bump */}
-      <mesh material={LOCO_MAT} position={[0, 0.1, 0.72]} castShadow>
-        <boxGeometry args={[0.6, 0.32, 0.18]} />
-      </mesh>
-
-      {/* Wheels */}
-      {wheelPositions.map(([x, z], i) => (
-        <mesh
-          key={i}
-          geometry={WHEEL_GEO}
-          material={WHEEL_MAT}
-          position={[x, -0.3, z]}
-          rotation={[0, 0, Math.PI / 2]}
-          castShadow
-        />
-      ))}
-
-      {/* Shield bubble — kept simple, orange wireframe reads clearly on bright scene */}
-      {shieldActive && (
-        <mesh>
-          <sphereGeometry args={[1.35, 16, 16]} />
-          <meshStandardMaterial color="#ff8800" transparent opacity={0.18} wireframe />
-        </mesh>
-      )}
-    </group>
-  )
-}
 
 // ─── Train ────────────────────────────────────────────────────────────────────
 interface TrainProps {
@@ -148,10 +53,15 @@ interface TrainProps {
 export default function Train({ mouseRef }: TrainProps): JSX.Element {
   const { camera, scene } = useThree()
 
+  const { nodes, materials } = useWagonGLTF()
+
   // ── Refs owned entirely by this component ─────────────────────────────────
-  const groupRef      = useRef<THREE.Group>(null)
-  const instanceRef   = useRef<THREE.InstancedMesh | null>(null)
-  const posRef        = useRef(new THREE.Vector3(0, 0.4, 0))
+  const groupRef   = useRef<THREE.Group>(null)
+  const bodyRef    = useRef<THREE.InstancedMesh | null>(null)
+  const wfRef      = useRef<THREE.InstancedMesh | null>(null)
+  const wbRef      = useRef<THREE.InstancedMesh | null>(null)
+  const cargoRef   = useRef<THREE.InstancedMesh | null>(null)
+  const posRef     = useRef(new THREE.Vector3(0, 0.4, 0))
   const angleRef      = useRef(0)
   const historyRef    = useRef<THREE.Vector3[]>([])
   const lastSampleRef = useRef(new THREE.Vector3(0, 0.4, 0))
@@ -165,31 +75,41 @@ export default function Train({ mouseRef }: TrainProps): JSX.Element {
   // Everything else is read from useGameStore.getState() inside useFrame.
   const shieldActive = useGameStore((s) => s.shieldActive)
 
-  // ── Imperative InstancedMesh — never put in JSX ───────────────────────────
+  // ── Imperative InstancedMeshes — never put in JSX ────────────────────────
   //
   // Root cause of the disappearing tail: putting <instancedMesh args={[...]} />
   // in JSX creates a NEW array literal every render. R3F compares the array
   // reference, sees it changed, and RECONSTRUCTS the InstancedMesh — wiping
   // all instance matrices back to identity (world origin) for that frame.
   //
-  // By creating and managing the mesh ourselves we bypass R3F reconciliation
-  // entirely. The mesh is added to the scene once and never touched by React.
+  // By creating and managing the meshes ourselves we bypass R3F reconciliation
+  // entirely. Four meshes render the full wagon model per tail segment:
+  // body, wheels-front, wheels-back, cargo (type-coloured via setColorAt).
   useEffect(() => {
-    const mesh = new THREE.InstancedMesh(SEG_GEO, SEG_MAT, MAX_TAIL)
-    mesh.count        = 0
-    mesh.castShadow   = true
-    // Frustum cull disabled — tail segments move each frame; letting Three.js
-    // cull them based on a stale bounding box causes intermittent disappearing.
-    mesh.frustumCulled = false
+    const body  = new THREE.InstancedMesh(nodes['train-carriage-dirt_1'].geometry, materials.colormap, MAX_TAIL)
+    const wf    = new THREE.InstancedMesh(nodes['wheels-front'].geometry,          materials.colormap, MAX_TAIL)
+    const wb    = new THREE.InstancedMesh(nodes['wheels-back'].geometry,           materials.colormap, MAX_TAIL)
+    const cargo = new THREE.InstancedMesh(nodes.cargo.geometry,                    cargoInstanceMat,   MAX_TAIL)
 
-    scene.add(mesh)
-    instanceRef.current = mesh
+    ;[body, wf, wb, cargo].forEach(m => {
+      m.count         = 0
+      m.castShadow    = true
+      // Frustum cull disabled — segments move each frame; stale bounding box
+      // causes intermittent disappearing.
+      m.frustumCulled = false
+    })
+
+    scene.add(body, wf, wb, cargo)
+    bodyRef.current  = body
+    wfRef.current    = wf
+    wbRef.current    = wb
+    cargoRef.current = cargo
 
     return () => {
-      scene.remove(mesh)
-      instanceRef.current = null
+      scene.remove(body, wf, wb, cargo)
+      bodyRef.current = wfRef.current = wbRef.current = cargoRef.current = null
     }
-  }, [scene])
+  }, [scene, nodes, materials.colormap])
 
   // ── Frame loop ────────────────────────────────────────────────────────────
   useFrame((_, delta) => {
@@ -232,7 +152,7 @@ export default function Train({ mouseRef }: TrainProps): JSX.Element {
     prevShieldRef.current = shieldNow
 
     // ── 3. Steer toward mouse ─────────────────────────────────────────────
-    _raycaster.setFromCamera(mouseRef.current, camera)
+    _raycaster.setFromCamera(mouseRef.current as THREE.Vector2, camera)
     _raycaster.ray.intersectPlane(_groundPlane, _mouseWorld)
 
     const dx = _mouseWorld.x - posRef.current.x
@@ -272,13 +192,16 @@ export default function Train({ mouseRef }: TrainProps): JSX.Element {
     trainTailLenRef.current = tailLength
 
     // ── 8. Drive tail segment instances ───────────────────────────────────
-    const mesh    = instanceRef.current
+    const body    = bodyRef.current
+    const wf      = wfRef.current
+    const wb      = wbRef.current
+    const cargo   = cargoRef.current
     const history = historyRef.current
 
-    if (mesh) {
+    if (body && wf && wb && cargo) {
       // Set count first — always, even if 0 — using the LIVE tailLength.
-      // This is the authoritative write; nothing else touches mesh.count.
-      mesh.count = tailLength
+      // This is the authoritative write; nothing else touches these counts.
+      body.count = wf.count = wb.count = cargo.count = tailLength
 
       for (let i = 0; i < tailLength; i++) {
         const idx     = (i + 1) * HISTORY_PER_SEGMENT
@@ -288,19 +211,43 @@ export default function Train({ mouseRef }: TrainProps): JSX.Element {
         const prevPos = history[prevIdx] ?? posRef.current
 
         const faceAngle = Math.atan2(prevPos.x - segPos.x, prevPos.z - segPos.z)
+        const sy        = Math.sin(faceAngle)
+        const cy        = Math.cos(faceAngle)
 
-        _dummy.position.set(segPos.x, 0.35, segPos.z)
+        // All wagon parts share scale 0.7 — matches TrainHead scale
+        _dummy.scale.setScalar(0.7)
+
+        // Body
+        _dummy.position.set(segPos.x, 0, segPos.z)
         _dummy.rotation.set(0, faceAngle, 0)
         _dummy.updateMatrix()
-        mesh.setMatrixAt(i, _dummy.matrix)
+        body.setMatrixAt(i, _dummy.matrix)
+
+        // Wheels-front: offset (0, 0.359, 0.6) × 0.7 → world Y = 0.4 + 0.251
+        _dummy.position.set(segPos.x + 0.42 * sy, 0.251, segPos.z + 0.42 * cy)
+        _dummy.updateMatrix()
+        wf.setMatrixAt(i, _dummy.matrix)
+
+        // Wheels-back: offset (0, 0.359, -0.6) × 0.7
+        _dummy.position.set(segPos.x - 0.42 * sy, 0.251, segPos.z - 0.42 * cy)
+        _dummy.updateMatrix()
+        wb.setMatrixAt(i, _dummy.matrix)
+
+        // Cargo: offset (0, 1.298, 0) × 0.7 → world Y = 0.4 + 0.909
+        _dummy.position.set(segPos.x, 0.909, segPos.z)
+        _dummy.updateMatrix()
+        cargo.setMatrixAt(i, _dummy.matrix)
 
         // tailTypes[i] is read from live store state — never stale
-        mesh.setColorAt(i, SEGMENT_COLORS[tailTypes[i]])
+        cargo.setColorAt(i, TYPE_COLORS[tailTypes[i]])
       }
 
       if (tailLength > 0) {
-        mesh.instanceMatrix.needsUpdate = true
-        if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
+        body.instanceMatrix.needsUpdate  = true
+        wf.instanceMatrix.needsUpdate    = true
+        wb.instanceMatrix.needsUpdate    = true
+        cargo.instanceMatrix.needsUpdate = true
+        if (cargo.instanceColor) cargo.instanceColor.needsUpdate = true
       }
     }
 
@@ -359,5 +306,5 @@ export default function Train({ mouseRef }: TrainProps): JSX.Element {
 
   // Only the locomotive uses JSX — the InstancedMesh is managed imperatively
   // above and never appears here, so R3F can never reconcile or reconstruct it.
-  return <Locomotive groupRef={groupRef} shieldActive={shieldActive} />
+  return <TrainHead groupRef={groupRef} shieldActive={shieldActive} />
 }
