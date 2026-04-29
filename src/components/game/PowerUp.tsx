@@ -12,10 +12,23 @@ const clockFaceGeo  = new THREE.CircleGeometry(0.54, 20)
 const handLongGeo   = new THREE.BoxGeometry(0.07, 0.38, 0.07)
 const handShortGeo  = new THREE.BoxGeometry(0.07, 0.24, 0.07)
 const clockDotGeo   = new THREE.CylinderGeometry(0.06, 0.06, 0.04, 8)
-const shieldBodyGeo = new THREE.CylinderGeometry(0.62, 0.54, 0.72, 6)
-const shieldTopGeo  = new THREE.CylinderGeometry(0.42, 0.62, 0.14, 6)
-const crossVGeo     = new THREE.PlaneGeometry(0.14, 0.56)
-const crossHGeo     = new THREE.PlaneGeometry(0.56, 0.14)
+const _shieldOutline = (() => {
+  const s = new THREE.Shape()
+  s.moveTo(-0.48,  0.52)
+  s.lineTo( 0.48,  0.52)
+  s.lineTo( 0.48,  0.04)
+  s.quadraticCurveTo( 0.48, -0.42,  0, -0.68)
+  s.quadraticCurveTo(-0.48, -0.42, -0.48, 0.04)
+  s.closePath()
+  return s
+})()
+const shieldExtrudeGeo = new THREE.ExtrudeGeometry(_shieldOutline, {
+  depth: 0.14, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.04, bevelSegments: 2,
+})
+shieldExtrudeGeo.center()
+const shieldBossGeo   = new THREE.SphereGeometry(0.09, 10, 8)
+const shieldCrossVGeo = new THREE.BoxGeometry(0.09, 0.54, 0.05)
+const shieldCrossHGeo = new THREE.BoxGeometry(0.38, 0.09, 0.05)
 const ringInnerGeo  = new THREE.RingGeometry(0.78, 0.90, 24)
 const ringOuterGeo  = new THREE.RingGeometry(1.05, 1.18, 24)
 const shadowGeo     = new THREE.CircleGeometry(0.8, 20)
@@ -35,7 +48,7 @@ const clockBodyMat = new THREE.MeshStandardMaterial({
   roughness: 0.5, metalness: 0,
 })
 const shieldMat = new THREE.MeshStandardMaterial({
-  color: '#ff6d00', emissive: '#e65100', emissiveIntensity: 0.8,
+  color: '#2979ff', emissive: '#1a237e', emissiveIntensity: 0.8,
   roughness: 0.4, metalness: 0,
 })
 
@@ -43,7 +56,8 @@ const shieldMat = new THREE.MeshStandardMaterial({
 const clockFaceMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 1, metalness: 0 })
 const clockHandMat = new THREE.MeshStandardMaterial({ color: '#1a237e', roughness: 1, metalness: 0 })
 const clockDotMat  = new THREE.MeshStandardMaterial({ color: '#e53935', roughness: 1, metalness: 0 })
-const crossMat     = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.9, side: THREE.DoubleSide })
+const crossMat      = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.9, side: THREE.DoubleSide })
+const shieldBossMat = new THREE.MeshStandardMaterial({ color: '#ffd740', roughness: 0.2, metalness: 0.85 })
 const shadowMat    = new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: 0.16, depthWrite: false })
 
 // Per-type glow ring materials (inner/outer × 3 types = 6 materials)
@@ -54,7 +68,7 @@ const RING_MAT: Record<string, [THREE.MeshBasicMaterial, THREE.MeshBasicMaterial
                                   THREE.MeshBasicMaterial, THREE.MeshBasicMaterial]> = {
   energy: [ringMat('#29b6f6', 0.44), ringMat('#29b6f6', 0.22), ringMat('#29b6f6', 0.10), ringMat('#29b6f6', 0.05)],
   clock:  [ringMat('#448aff', 0.44), ringMat('#448aff', 0.22), ringMat('#448aff', 0.10), ringMat('#448aff', 0.05)],
-  shield: [ringMat('#ff6d00', 0.44), ringMat('#ff6d00', 0.22), ringMat('#ff6d00', 0.10), ringMat('#ff6d00', 0.05)],
+  shield: [ringMat('#2979ff', 0.44), ringMat('#2979ff', 0.22), ringMat('#2979ff', 0.10), ringMat('#2979ff', 0.05)],
 }
 
 const EMISSIVE_MATS = [energyMat, clockBodyMat, shieldMat]
@@ -99,10 +113,10 @@ function ClockShape(): JSX.Element {
 function ShieldShape(): JSX.Element {
   return (
     <group>
-      <mesh geometry={shieldBodyGeo} material={shieldMat} castShadow />
-      <mesh geometry={shieldTopGeo}  material={shieldMat} position={[0, 0.43, 0]} castShadow />
-      <mesh geometry={crossVGeo} material={crossMat} position={[0, 0.52, 0]} rotation={[-Math.PI / 2, 0, 0]} />
-      <mesh geometry={crossHGeo} material={crossMat} position={[0, 0.52, 0]} rotation={[-Math.PI / 2, 0, 0]} />
+      <mesh geometry={shieldExtrudeGeo} material={shieldMat}    castShadow />
+      <mesh geometry={shieldCrossVGeo}  material={crossMat}     position={[0, 0.04, 0.13]} />
+      <mesh geometry={shieldCrossHGeo}  material={crossMat}     position={[0, 0.04, 0.13]} />
+      <mesh geometry={shieldBossGeo}    material={shieldBossMat} position={[0, 0.04, 0.14]} castShadow />
     </group>
   )
 }
@@ -149,7 +163,7 @@ export default function PowerUp({ type, position }: Props): JSX.Element {
   return (
     <group position={[position.x, 0, position.z]}>
       <group ref={bodyRef}>
-        {type === 'energy' && <EnergyShape />}
+        {type === 'energy' && <group rotation={[Math.PI / 3, 0, Math.PI / 6]}><EnergyShape /></group>}
         {type === 'clock'  && <ClockShape  />}
         {type === 'shield' && <ShieldShape />}
       </group>

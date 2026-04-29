@@ -120,6 +120,142 @@ function SmokeParticles({ groupRef }: { groupRef: React.RefObject<THREE.Group | 
   return null
 }
 
+// ─── ForceField (active shield visual) ───────────────────────────────────────
+const FF_COUNT = 180
+const FF_R     = 1.3
+
+// Fibonacci hemisphere: front half (z >= 0) — pre-computed once at module level
+const _ffPts = (() => {
+  const pts    = new Float32Array(FF_COUNT * 3)
+  const golden = (1 + Math.sqrt(5)) / 2
+  for (let i = 0; i < FF_COUNT; i++) {
+    const phi  = Math.acos(1 - i / FF_COUNT)  // 0 → ~PI/2
+    const ang  = 2 * Math.PI * i / golden
+    const sinP = Math.sin(phi)
+    pts[i * 3]     = sinP * Math.cos(ang) * FF_R
+    pts[i * 3 + 1] = sinP * Math.sin(ang) * FF_R * 0.88  // slightly flatten vertically
+    pts[i * 3 + 2] = Math.cos(phi) * FF_R                 // z: 1 → 0 (front → equator)
+  }
+  return pts
+})()
+
+const _ffDummy = new THREE.Object3D()
+
+// Shared module-level geometries & materials — never reallocated
+const ffParticleGeo = new THREE.IcosahedronGeometry(0.068, 0)
+const ffParticleMat = new THREE.MeshBasicMaterial({
+  color: '#40c4ff',
+  transparent: true,
+  opacity: 1.0,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+})
+const ffShellMat = new THREE.MeshBasicMaterial({
+  color: '#0288d1',
+  transparent: true,
+  opacity: 0.22,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+  side: THREE.DoubleSide,
+})
+const ffRimMat = new THREE.MeshBasicMaterial({
+  color: '#29b6f6',
+  transparent: true,
+  opacity: 0.38,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+  side: THREE.BackSide,
+})
+// Separate instances so each ring's opacity can be animated independently
+const ffRingMat1 = new THREE.MeshBasicMaterial({
+  color: '#4fc3f7',
+  transparent: true,
+  opacity: 0.5,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+  side: THREE.DoubleSide,
+})
+const ffRingMat2 = new THREE.MeshBasicMaterial({
+  color: '#0288d1',
+  transparent: true,
+  opacity: 0.35,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+  side: THREE.DoubleSide,
+})
+
+function ForceField() {
+  const instanceRef = useRef<THREE.InstancedMesh>(null)
+  const ring1Ref    = useRef<THREE.Mesh>(null)
+  const ring2Ref    = useRef<THREE.Mesh>(null)
+
+  useFrame(({ clock }) => {
+    const t    = clock.getElapsedTime()
+    const mesh = instanceRef.current
+    if (!mesh) return
+
+    for (let i = 0; i < FF_COUNT; i++) {
+      const i3 = i * 3
+      const bx = _ffPts[i3]
+      const by = _ffPts[i3 + 1]
+      const bz = _ffPts[i3 + 2]
+
+      // Surface ripple wave
+      const phase  = (bx + by) * 0.55 + bz * 0.28 + t * 2.2
+      const ripple = 1.0 + Math.sin(phase) * 0.026
+
+      _ffDummy.position.set(bx * ripple, by * ripple, bz * ripple)
+
+      // Equator particles are larger; all pulse in size
+      const normZ    = bz / FF_R                            // 1 at front pole, 0 at equator
+      const edgeness = 1.0 - normZ                          // 0 at front, 1 at equator
+      const pulse    = 0.7 + 0.6 * Math.sin(t * 3.0 + i * 0.33)
+      _ffDummy.scale.setScalar(Math.max(0.15, (0.7 + edgeness * 1.5) * pulse))
+      _ffDummy.updateMatrix()
+      mesh.setMatrixAt(i, _ffDummy.matrix)
+    }
+    mesh.instanceMatrix.needsUpdate = true
+
+    // Out-of-phase ring pulses
+    ffRingMat1.opacity = 0.28 + Math.abs(Math.sin(t * 1.9))       * 0.45
+    ffRingMat2.opacity = 0.20 + Math.abs(Math.sin(t * 2.3 + 1.1)) * 0.35
+    if (ring1Ref.current) ring1Ref.current.scale.setScalar(0.95 + Math.sin(t * 1.9)       * 0.055)
+    if (ring2Ref.current) ring2Ref.current.scale.setScalar(0.92 + Math.sin(t * 2.3 + 1.1) * 0.07)
+  })
+
+  // Positioned at the nose of the train (+Z is train-forward, group scale=0.7)
+  return (
+    <group position={[0, -0.15, 0.9]}>
+      {/* Particle dome — front hemisphere only */}
+      <instancedMesh
+        ref={instanceRef}
+        args={[ffParticleGeo, ffParticleMat, FF_COUNT]}
+        frustumCulled={false}
+      />
+
+      {/* Translucent energy shell */}
+      <mesh material={ffShellMat}>
+        <sphereGeometry args={[FF_R, 28, 20]} />
+      </mesh>
+
+      {/* Rim glow — BackSide gives an inner-edge highlight */}
+      <mesh material={ffRimMat}>
+        <sphereGeometry args={[FF_R * 1.05, 28, 20]} />
+      </mesh>
+
+      {/* Large equatorial ring — faces train-forward (+Z), pulses */}
+      <mesh ref={ring1Ref} material={ffRingMat1}>
+        <ringGeometry args={[FF_R * 0.88, FF_R * 1.0, 52]} />
+      </mesh>
+
+      {/* Inner angled ring — adds depth */}
+      <mesh ref={ring2Ref} rotation={[Math.PI * 0.28, 0, 0.35]} material={ffRingMat2}>
+        <ringGeometry args={[FF_R * 0.48, FF_R * 0.60, 36]} />
+      </mesh>
+    </group>
+  )
+}
+
 // ─── TrainHead ────────────────────────────────────────────────────────────────
 interface TrainProps {
   groupRef: React.RefObject<THREE.Group | null>
@@ -189,13 +325,7 @@ export function TrainHead({ groupRef, shieldActive }: TrainProps) {
           />
         </mesh>
 
-        {/* Shield bubble — kept simple, orange wireframe reads clearly on bright scene */}
-        {shieldActive && (
-          <mesh>
-            <sphereGeometry args={[1.35, 16, 16]} />
-            <meshStandardMaterial color="#ff8800" transparent opacity={0.18} wireframe />
-          </mesh>
-        )}
+        {shieldActive && <ForceField />}
       </group>
 
       <SmokeParticles groupRef={groupRef} />

@@ -12,6 +12,7 @@ import PowerUp, { PowerUpAnimator }      from './PowerUp'
 import FollowCamera                      from './FollowCamera'
 import ZoneManager                       from '../../zones/ZoneManager'
 import { WagonInstances }                from '../models/Wagon'
+import WindLines                         from './WindLines'
 import type { MouseNDC }                 from '../../types'
 
 function Scene({ mouseRef }: { mouseRef: React.MutableRefObject<MouseNDC> }): JSX.Element {
@@ -56,6 +57,7 @@ function Scene({ mouseRef }: { mouseRef: React.MutableRefObject<MouseNDC> }): JS
       />
 
       {/* ── World ──────────────────────────────────────────────────────── */}
+      <WindLines />
       <Ground />
       <Train mouseRef={mouseRef} />
 

@@ -1,4 +1,4 @@
-import { useRef, useEffect, type JSX } from 'react'
+import { useRef, useEffect, useLayoutEffect, type JSX } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
@@ -17,6 +17,7 @@ import {
   TRAIN_STEER_STRENGTH,
   TRAIN_SEGMENT_GAP,
   ENERGY_DRAIN_RATE,
+  ENERGY_REGEN_RATE,
   COLLISION_RADII,
 } from '../../utils/constants'
 import { angleDelta, distXZ, distXZRaw } from '../../utils/math'
@@ -69,6 +70,18 @@ export default function Train({ mouseRef }: TrainProps): JSX.Element {
   // ── Sfx edge-detection refs (track previous values) ──────────────────────
   const prevBoostRef  = useRef(false)
   const prevShieldRef = useRef(false)
+
+  // Reset module-level shared refs on each new game session so FollowCamera
+  // snaps to the correct spawn position instead of the stale last-game position.
+  // useLayoutEffect fires after React commits but before the first useFrame.
+  useLayoutEffect(() => {
+    trainPosRef.current.copy(posRef.current)
+    trainAngleRef.current     = angleRef.current
+    trainPrevAngleRef.current = angleRef.current
+    trainSpeedRef.current     = 0
+    trainHistoryRef.current   = []
+    trainTailLenRef.current   = 0
+  }, [])
 
   // ── React subscription for shield visual only (Locomotive re-render) ──────
   // We intentionally limit React subscriptions to values that drive JSX.
@@ -130,6 +143,7 @@ export default function Train({ mouseRef }: TrainProps): JSX.Element {
       obstacles,
       powerups,
       drainEnergy,
+      addEnergy,
       tickTimer,
       collectWagon,
       collectPowerup,
@@ -143,6 +157,7 @@ export default function Train({ mouseRef }: TrainProps): JSX.Element {
     // ── 1. Clock & energy ─────────────────────────────────────────────────
     tickTimer(dt)
     if (isBoosting) drainEnergy(ENERGY_DRAIN_RATE * dt)
+    addEnergy(ENERGY_REGEN_RATE * dt)
 
     // ── 2. Sfx edge detection (boost / shield) ────────────────────────────
     const shieldNow = useGameStore.getState().shieldActive

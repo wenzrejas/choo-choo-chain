@@ -4,12 +4,13 @@ import type { WagonType, ObstacleType, PowerUpType } from '../types'
 export const TRAIN_BASE_SPEED       = 8    as const
 export const TRAIN_BOOST_SPEED      = 14   as const
 export const TRAIN_STEER_STRENGTH   = 2  as const
-export const TRAIN_SEGMENT_GAP      = 1.3  as const
+export const TRAIN_SEGMENT_GAP      = 1.32  as const
 
 // ─── Energy ─────────────────────────────────────────────────────────────────
 export const ENERGY_MAX             = 100  as const
 export const ENERGY_DRAIN_RATE      = 20   as const
 export const ENERGY_PICKUP_AMOUNT   = 40   as const
+export const ENERGY_REGEN_RATE      = 2    as const  // passive energy/sec (always on)
 
 // ─── Timer ──────────────────────────────────────────────────────────────────
 export const GAME_DURATION_SECONDS  = 80   as const
@@ -60,8 +61,8 @@ export const CAMERA_LOOK_LAG      = 0.14 as const
 export const CAMERA_LOOK_AHEAD    = 2   as const
 export const CAMERA_ROLL_STRENGTH = 0 as const
 export const CAMERA_ROLL_LAG      = 0 as const
-export const CAMERA_BASE_FOV      = 70   as const
-export const CAMERA_BOOST_FOV     = 75   as const
+export const CAMERA_BASE_FOV      = 50   as const
+export const CAMERA_BOOST_FOV     = 55   as const
 export const CAMERA_FOV_LAG       = 0.08 as const
 
 // ─── Zone grid ───────────────────────────────────────────────────────────────
@@ -77,7 +78,7 @@ export const ZONE_SIZE   = 16 as const
  * Active grid = (2 * ZONE_RADIUS + 1)² zones.
  * 3 → 7×7 = 49 zones loaded at a time.
  */
-export const ZONE_RADIUS = 8  as const
+export const ZONE_RADIUS = 4  as const
 
 // ─── Zone content generation ──────────────────────────────────────────────────
 /**

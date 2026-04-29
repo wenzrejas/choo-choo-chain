@@ -54,7 +54,7 @@ export default function IdleScreen(): JSX.Element {
   return (
     <div style={styles.root}>
       <div style={styles.content}>
-        <div style={styles.logo}>WENZ</div>
+        <div style={styles.logo}>TEST</div>
         <div style={styles.subtitle}>TRAIN RUSH</div>
         <div style={styles.buttonGroup}>
           <button style={styles.primaryBtn}   onClick={() => { AudioEngine.resume(); sfxClick(); startGame() }}>START</button>

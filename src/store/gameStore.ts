@@ -129,7 +129,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   // ── Timer ──────────────────────────────────────────────────────────────
   tickTimer: (delta) => {
     const { timeRemaining, shieldTimeRemaining } = get()
-    const newTime      = Math.max(0, timeRemaining      - delta)
+    const newTime       = Math.max(0, timeRemaining      - delta)
     const newShieldTime = Math.max(0, shieldTimeRemaining - delta)
 
     set({

@@ -46,6 +46,12 @@ const shadowMat = new THREE.MeshBasicMaterial({
   color: '#000000', transparent: true, opacity: 0.14, depthWrite: false,
 })
 
+// ─── Ring indicator (flat torus, white) ──────────────────────────────────────
+const ringGeo = new THREE.TorusGeometry(0.9, 0.07, 8, 52)
+const ringMat = new THREE.MeshBasicMaterial({
+  color: '#ffffff', transparent: true, opacity: 0.5, depthWrite: false,
+})
+
 // ─── Scratch Object3D — reused every frame to build instance matrices ────────
 const _dummy = new THREE.Object3D()
 
@@ -60,6 +66,16 @@ export function idToYaw(id: string): number {
   return (h % 8) * (Math.PI / 4)
 }
 
+// Different seed so spin rate is independent of yaw.
+function idToSpinRate(id: string): number {
+  let h = 0x9e3779b9
+  for (let i = 0; i < id.length; i++) {
+    h ^= id.charCodeAt(i)
+    h = (h * 0x01000193) >>> 0
+  }
+  return 0.4 + (h % 100) / 100 * 1.0  // [0.4, 1.4] rad/s
+}
+
 // ─── GLTF hook ────────────────────────────────────────────────────────────────
 // Safe to call in multiple components — useGLTF caches the result by URL.
 export function useWagonGLTF(): WagonGLTF {
@@ -69,7 +85,7 @@ export function useWagonGLTF(): WagonGLTF {
 // ─── Standalone Wagon ─────────────────────────────────────────────────────────
 // Single wagon with cargo coloured by type. Use for UI previews or debugging.
 // For game collectibles use <WagonInstances /> (5 draw calls for all wagons).
-export function Wagon({ id, type, position }: WagonEntity): JSX.Element {
+export function Wagon({ type, position }: WagonEntity): JSX.Element {
   const { nodes, materials } = useWagonGLTF()
 
   const cargoMat = useMemo(() => {
@@ -128,6 +144,7 @@ export function WagonInstances(): null {
   const wbRef     = useRef<THREE.InstancedMesh | null>(null)
   const cargoRef  = useRef<THREE.InstancedMesh | null>(null)
   const shadowRef = useRef<THREE.InstancedMesh | null>(null)
+  const ringRef   = useRef<THREE.InstancedMesh | null>(null)
 
   useEffect(() => {
     const body   = new THREE.InstancedMesh(nodes['train-carriage-dirt_1'].geometry, materials.colormap, MAX_INSTANCES)
@@ -135,6 +152,7 @@ export function WagonInstances(): null {
     const wb     = new THREE.InstancedMesh(nodes['wheels-back'].geometry,           materials.colormap, MAX_INSTANCES)
     const cargo  = new THREE.InstancedMesh(nodes.cargo.geometry,                    cargoInstanceMat,   MAX_INSTANCES)
     const shadow = new THREE.InstancedMesh(shadowGeo,                               shadowMat,          MAX_INSTANCES)
+    const ring   = new THREE.InstancedMesh(ringGeo,                                 ringMat.clone(),    MAX_INSTANCES)
 
     ;[body, wf, wb, cargo].forEach(m => {
       m.count         = 0
@@ -144,17 +162,20 @@ export function WagonInstances(): null {
     })
     shadow.count         = 0
     shadow.frustumCulled = false
+    ring.count           = 0
+    ring.frustumCulled   = false
 
-    scene.add(body, wf, wb, cargo, shadow)
+    scene.add(body, wf, wb, cargo, shadow, ring)
     bodyRef.current   = body
     wfRef.current     = wf
     wbRef.current     = wb
     cargoRef.current  = cargo
     shadowRef.current = shadow
+    ringRef.current   = ring
 
     return () => {
-      scene.remove(body, wf, wb, cargo, shadow)
-      bodyRef.current = wfRef.current = wbRef.current = cargoRef.current = shadowRef.current = null
+      scene.remove(body, wf, wb, cargo, shadow, ring)
+      bodyRef.current = wfRef.current = wbRef.current = cargoRef.current = shadowRef.current = ringRef.current = null
     }
   }, [scene, nodes, materials.colormap])
 
@@ -164,27 +185,31 @@ export function WagonInstances(): null {
     const wb     = wbRef.current
     const cargo  = cargoRef.current
     const shadow = shadowRef.current
-    if (!body || !wf || !wb || !cargo || !shadow) return
+    const ring   = ringRef.current
+    if (!body || !wf || !wb || !cargo || !shadow || !ring) return
 
     const wagons = useGameStore.getState().wagons
     const count  = wagons.length
     const t      = clock.getElapsedTime()
 
-    body.count = wf.count = wb.count = cargo.count = shadow.count = count
+    body.count = wf.count = wb.count = cargo.count = shadow.count = ring.count = count
+
+    // Global ring opacity pulse
+    ;(ring.material as THREE.MeshBasicMaterial).opacity = 0.35 + Math.sin(t * 2.5) * 0.25
 
     for (let i = 0; i < count; i++) {
       const { id, type, position: p } = wagons[i]
-      const yaw = idToYaw(id)
-      const bob = 0.06 + Math.sin(t * 1.5 + p.x * 0.5) * 0.07
-      const sy  = Math.sin(yaw)
-      const cy  = Math.cos(yaw)
+      const spin = t * idToSpinRate(id) + idToYaw(id)
+      const bob  = 0.06 + Math.sin(t * 1.5 + p.x * 0.5) * 0.13
+      const sy   = Math.sin(spin)
+      const cy   = Math.cos(spin)
 
       // All wagon parts share scale 0.7 — matches TrainHead scale
       _dummy.scale.setScalar(0.7)
 
       // Body
       _dummy.position.set(p.x, bob, p.z)
-      _dummy.rotation.set(0, yaw, 0)
+      _dummy.rotation.set(0, spin, 0)
       _dummy.updateMatrix()
       body.setMatrixAt(i, _dummy.matrix)
 
@@ -209,6 +234,14 @@ export function WagonInstances(): null {
       _dummy.rotation.set(-Math.PI / 2, 0, 0)
       _dummy.updateMatrix()
       shadow.setMatrixAt(i, _dummy.matrix)
+
+      // Ring: flat torus on the ground, per-instance colour, per-wagon scale pulse
+      const pulse = 0.9 + Math.sin(t * 2.5 + p.x) * 0.1
+      _dummy.scale.setScalar(pulse)
+      _dummy.position.set(p.x, 0.025, p.z)
+      _dummy.rotation.set(-Math.PI / 2, 0, 0)
+      _dummy.updateMatrix()
+      ring.setMatrixAt(i, _dummy.matrix)
     }
 
     body.instanceMatrix.needsUpdate   = true
@@ -216,6 +249,7 @@ export function WagonInstances(): null {
     wb.instanceMatrix.needsUpdate     = true
     cargo.instanceMatrix.needsUpdate  = true
     shadow.instanceMatrix.needsUpdate = true
+    ring.instanceMatrix.needsUpdate   = true
     if (count > 0 && cargo.instanceColor) cargo.instanceColor.needsUpdate = true
   })
 
