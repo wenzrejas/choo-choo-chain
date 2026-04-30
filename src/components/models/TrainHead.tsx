@@ -6,10 +6,12 @@ import type { GLTF } from 'three-stdlib'
 import type { Mesh, MeshStandardMaterial } from 'three'
 import * as THREE from 'three'
 
+export const MODEL_PATH = `${import.meta.env.BASE_URL}models/train/train-locomotive-b.glb`
+
 // ─── Smoke constants ──────────────────────────────────────────────────────────
 const MAX_SMOKE      = 120
-const SMOKE_LIFETIME = 2.2   // seconds
-const SMOKE_PER_SEC  = 22
+const SMOKE_LIFETIME = 2   // seconds
+const SMOKE_PER_SEC  = 30
 
 // Module-level scratch (never reallocated)
 const _sd           = new THREE.Object3D()
@@ -278,7 +280,7 @@ type GLTFResult = GLTF &
   }
 
 export function TrainHead({ groupRef, shieldActive }: TrainProps) {
-  const { nodes, materials } = useGLTF('/choo-choo-chain/models/train-locomotive-b.glb') as GLTFResult
+  const { nodes, materials } = useGLTF(MODEL_PATH) as GLTFResult
   return (
     <>
       <group ref={groupRef} dispose={null} scale={0.7}>
@@ -333,4 +335,4 @@ export function TrainHead({ groupRef, shieldActive }: TrainProps) {
   )
 }
 
-useGLTF.preload('/train-locomotive-b.glb')
+useGLTF.preload(MODEL_PATH)

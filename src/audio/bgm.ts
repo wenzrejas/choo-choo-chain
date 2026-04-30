@@ -5,7 +5,7 @@ let audio: HTMLAudioElement | null = null
 let fadeTimer: ReturnType<typeof setInterval> | null = null
 
 const BGM_URL = `${import.meta.env.BASE_URL}sounds/bgm.mp3`
-const TARGET_VOLUME = 0.5
+const TARGET_VOLUME = 0.25
 const FADE_IN_MS    = 2000
 const FADE_OUT_MS   = 800
 

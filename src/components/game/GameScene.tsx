@@ -7,11 +7,13 @@ import { useGameStore }                  from '../../store/gameStore'
 
 import Ground                            from './Ground'
 import Train                             from './Train'
-import { ObstacleInstances }             from './Obstacle'
 import PowerUp, { PowerUpAnimator }      from './PowerUp'
 import FollowCamera                      from './FollowCamera'
 import ZoneManager                       from '../../zones/ZoneManager'
 import { WagonInstances }                from '../models/Wagon'
+import { TreeInstances }                 from '../models/Tree'
+import { BoulderInstances }              from '../models/Boulder'
+import { TreeLogInstances }              from '../models/TreeLog'
 import WindLines                         from './WindLines'
 import type { MouseNDC }                 from '../../types'
 
@@ -63,7 +65,9 @@ function Scene({ mouseRef }: { mouseRef: React.MutableRefObject<MouseNDC> }): JS
 
       {/* ── Instanced entity renderers (read store internally) ──────────── */}
       <WagonInstances />
-      <ObstacleInstances />
+      <TreeInstances />
+      <BoulderInstances />
+      <TreeLogInstances />
 
       {/* ── Per-item components (still need individual animation) ────────── */}
       <PowerUpAnimator />

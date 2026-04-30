@@ -9,7 +9,7 @@ import { useGameStore } from '../../store/gameStore'
 import type { WagonEntity, WagonType } from '../../types'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-export const MODEL_PATH = '/choo-choo-chain/models/train-carriage-dirt.glb'
+export const MODEL_PATH = '/choo-choo-chain/models/train/train-carriage-dirt.glb'
 
 const MAX_INSTANCES = 200
 

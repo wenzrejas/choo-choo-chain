@@ -24,9 +24,9 @@ class AudioEngineClass {
       this._master  = this._ctx.createGain()
       this._sfxBus  = this._ctx.createGain()
       this._bgmBus  = this._ctx.createGain()
-      this._master.gain.value  = 0.9
-      this._sfxBus.gain.value  = 1.0
-      this._bgmBus.gain.value  = 0.38
+      this._master.gain.value  = 0.5
+      this._sfxBus.gain.value  = 0.7
+      this._bgmBus.gain.value  = 0.25
       this._sfxBus.connect(this._master)
       this._bgmBus.connect(this._master)
       this._master.connect(this._ctx.destination)
