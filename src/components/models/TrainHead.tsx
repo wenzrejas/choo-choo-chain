@@ -146,14 +146,14 @@ const _ffDummy = new THREE.Object3D()
 // Shared module-level geometries & materials — never reallocated
 const ffParticleGeo = new THREE.IcosahedronGeometry(0.068, 0)
 const ffParticleMat = new THREE.MeshBasicMaterial({
-  color: '#40c4ff',
+  color: '#ea80ff',
   transparent: true,
   opacity: 1.0,
   depthWrite: false,
   blending: THREE.AdditiveBlending,
 })
 const ffShellMat = new THREE.MeshBasicMaterial({
-  color: '#0288d1',
+  color: '#7c3aed',
   transparent: true,
   opacity: 0.22,
   depthWrite: false,
@@ -161,7 +161,7 @@ const ffShellMat = new THREE.MeshBasicMaterial({
   side: THREE.DoubleSide,
 })
 const ffRimMat = new THREE.MeshBasicMaterial({
-  color: '#29b6f6',
+  color: '#ab47bc',
   transparent: true,
   opacity: 0.38,
   depthWrite: false,
@@ -170,7 +170,7 @@ const ffRimMat = new THREE.MeshBasicMaterial({
 })
 // Separate instances so each ring's opacity can be animated independently
 const ffRingMat1 = new THREE.MeshBasicMaterial({
-  color: '#4fc3f7',
+  color: '#ce93d8',
   transparent: true,
   opacity: 0.5,
   depthWrite: false,
@@ -178,7 +178,7 @@ const ffRingMat1 = new THREE.MeshBasicMaterial({
   side: THREE.DoubleSide,
 })
 const ffRingMat2 = new THREE.MeshBasicMaterial({
-  color: '#0288d1',
+  color: '#7c3aed',
   transparent: true,
   opacity: 0.35,
   depthWrite: false,

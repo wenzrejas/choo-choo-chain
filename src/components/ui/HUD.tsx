@@ -1,7 +1,124 @@
-import type { CSSProperties, JSX } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type JSX } from 'react'
+import gsap from 'gsap'
 import { useGameStore } from '../../store/gameStore'
-import { getDifficulty } from '../../utils/difficulty'
 import { ENERGY_MAX, SHIELD_DURATION } from '../../utils/constants'
+
+const WAGON_COLORS = { copper: '#b87333', silver: '#aaaaaa', gold: '#f5a400' } as const
+
+// ─── Icons ────────────────────────────────────────────────────────────────────
+
+function ClockIcon(): JSX.Element {
+  return (
+    <svg width="36" height="38" viewBox="0 0 36 38" fill="none">
+      {/* 3D rim — dark purple for depth */}
+      <circle cx="18" cy="22" r="15" fill="#6b21a8" />
+      {/* Face border ring */}
+      <circle cx="18" cy="18" r="15" fill="#ddd6fe" />
+      {/* Face */}
+      <circle cx="18" cy="18" r="13" fill="white" />
+      {/* Top-left highlight arc */}
+      <path d="M8 11 A13 13 0 0 1 23 6" stroke="rgba(255,255,255,0.95)" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+      {/* Hands */}
+      <line x1="18" y1="18" x2="18" y2="8"  stroke="#4c1d95" strokeWidth="3" strokeLinecap="round" />
+      <line x1="18" y1="18" x2="26" y2="18" stroke="#4c1d95" strokeWidth="3" strokeLinecap="round" />
+      <circle cx="18" cy="18" r="2.5" fill="#4c1d95" />
+    </svg>
+  )
+}
+
+function OctahedronIcon({ color }: { color: string }): JSX.Element {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      {/* Top face */}
+      <polygon points="7,0 13,6 7,7 1,6" fill={color} />
+      {/* Bottom face — slightly darker */}
+      <polygon points="7,14 13,8 7,7 1,8" fill={color} opacity="0.6" />
+      {/* Left edge */}
+      <polygon points="1,6 7,7 1,8" fill="rgba(0,0,0,0.08)" />
+      {/* Right edge */}
+      <polygon points="13,6 7,7 13,8" fill="rgba(0,0,0,0.08)" />
+    </svg>
+  )
+}
+
+function StarIcon(): JSX.Element {
+  return (
+    <svg width="32" height="34" viewBox="0 0 30 32" fill="none">
+      {/* 3D depth — shadow layer offset down */}
+      <polygon
+        points="15,2 18.3,10 27,11 21,17 22.5,26 15,21 7.5,26 9,17 3,11 11.7,10"
+        fill="#b87200"
+        transform="translate(0,3)"
+      />
+      {/* Main body */}
+      <polygon
+        points="15,2 18.3,10 27,11 21,17 22.5,26 15,21 7.5,26 9,17 3,11 11.7,10"
+        fill="#f5a400"
+      />
+      {/* Top highlight face */}
+      <polygon
+        points="15,2 18.3,10 27,11 21,17 15,13.5 9,17 3,11 11.7,10"
+        fill="#ffe040"
+      />
+    </svg>
+  )
+}
+
+function LightningIcon({ active }: { active: boolean }): JSX.Element {
+  const front = active ? '#ff9500' : '#ffe040'
+  const side  = active ? '#cc5500' : '#d4880a'
+  return (
+    <svg width="22" height="30" viewBox="0 0 22 30" fill="none">
+      {/* Side face — peeks out right for depth */}
+      <path d="M14 3 L5 17 H11 L10 30 L20 14 H14 Z" fill={side} />
+      {/* Front face */}
+      <path d="M11 1 L2 15 H8 L7 28 L17 12 H11 Z" fill={front} />
+    </svg>
+  )
+}
+
+function ShieldIcon(): JSX.Element {
+  return (
+    <svg width="22" height="26" viewBox="0 0 22 26" fill="none">
+      {/* Drop shadow depth layer */}
+      <path d="M11 3 L20 7 L20 16 C20 22 11 26 11 26 C11 26 2 22 2 16 L2 7 Z" fill="#4a1080" />
+      {/* Main body */}
+      <path d="M11 2 L20 6 L20 15 C20 21 11 25 11 25 C11 25 2 21 2 15 L2 6 Z" fill="#7c3aed" />
+      {/* Top bevel highlight */}
+      <path d="M11 2 L20 6 L16 9 L11 7 L6 9 L2 6 Z" fill="#a855f7" />
+      {/* Shine stroke */}
+      <path d="M11 4 L18 8 L18 15 C18 20 11 23 11 23" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+    </svg>
+  )
+}
+
+// ─── Shield card with circular progress ──────────────────────────────────────
+
+function ShieldCard({ pct }: { pct: number }): JSX.Element {
+  const R = 20
+  const C = 2 * Math.PI * R
+  const offset = C * (1 - pct / 100)
+  return (
+    <div style={{ ...styles.card, padding: 6, position: 'relative', justifyContent: 'center' }}>
+      <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+        <circle cx="26" cy="26" r={R} stroke="rgba(124,58,237,0.18)" strokeWidth="5" />
+        <circle
+          cx="26" cy="26" r={R}
+          stroke="#7c3aed" strokeWidth="5"
+          strokeDasharray={C} strokeDashoffset={offset}
+          strokeLinecap="round"
+          transform="rotate(-90 26 26)"
+          style={{ transition: 'stroke-dashoffset 0.15s linear' }}
+        />
+      </svg>
+      <div style={styles.shieldIconOverlay}>
+        <ShieldIcon />
+      </div>
+    </div>
+  )
+}
+
+// ─── HUD ─────────────────────────────────────────────────────────────────────
 
 export default function HUD(): JSX.Element {
   const score               = useGameStore((s) => s.score)
@@ -11,148 +128,253 @@ export default function HUD(): JSX.Element {
   const shieldActive        = useGameStore((s) => s.shieldActive)
   const shieldTimeRemaining = useGameStore((s) => s.shieldTimeRemaining)
   const wagonsCollected     = useGameStore((s) => s.wagonsCollected)
-  const tailTypes           = useGameStore((s) => s.tailTypes)
 
-  const tailLength  = tailTypes.length
+  const [bonusAmt, setBonusAmt] = useState(10)
+  const prevTimeRef = useRef(timeRemaining)
+  const bonusRef    = useRef<HTMLDivElement>(null)
+
   const energyPct   = (energy / ENERGY_MAX) * 100
   const shieldPct   = (shieldTimeRemaining / SHIELD_DURATION) * 100
   const timeWarning = timeRemaining < 15
 
-  // Difficulty indicator — read every render (cheap pure function)
-  const { factor } = getDifficulty(timeRemaining, score)
-  const diffLabel   =
-    factor < 0.25 ? 'EASY' :
-    factor < 0.50 ? 'NORMAL' :
-    factor < 0.75 ? 'HARD' :
-                    'EXTREME'
-  const diffColor   =
-    factor < 0.25 ? '#44cc44' :
-    factor < 0.50 ? '#aacc44' :
-    factor < 0.75 ? '#ffaa00' :
-                    '#ff3333'
+  const mins = Math.floor(timeRemaining / 60)
+  const secs = Math.floor(timeRemaining % 60)
+  const timeDisplay = `${mins}:${String(secs).padStart(2, '0')}`
+
+  useEffect(() => {
+    const prev = prevTimeRef.current
+    prevTimeRef.current = timeRemaining
+    if (timeRemaining - prev > 1 && bonusRef.current) {
+      setBonusAmt(Math.round(timeRemaining - prev))
+      gsap.killTweensOf(bonusRef.current)
+      gsap.fromTo(
+        bonusRef.current,
+        { y: 0, opacity: 1 },
+        { y: -36, opacity: 0, duration: 1.3, ease: 'power2.out' },
+      )
+    }
+  }, [timeRemaining])
 
   return (
     <div style={styles.root}>
-      {/* ── Top bar ────────────────────────────────────────────────────── */}
-      <div style={styles.topBar}>
-        {/* Timer */}
-        <div style={{ ...styles.timerBox, color: timeWarning ? '#ff4444' : '#fff' }}>
-          <span style={styles.label}>TIME</span>
-          <span style={styles.timerValue}>{Math.ceil(timeRemaining)}</span>
-          {timeWarning && <span style={styles.pulse}>!</span>}
-        </div>
 
-        {/* Score + difficulty badge */}
-        <div style={styles.centerCluster}>
-          <div style={styles.scoreBox}>
-            <span style={styles.scoreValue}>{score}</span>
-            <span style={styles.label}>PTS</span>
-          </div>
-          {/* <div style={{ ...styles.diffBadge, color: diffColor, borderColor: diffColor }}>
-            {diffLabel}
-          </div> */}
+      {/* ── Timer (top-left) ──────────────────────────────────────────────── */}
+      <div style={styles.topLeft}>
+        <div style={styles.timerCard}>
+          <ClockIcon />
+          <span style={{ ...styles.timerValue, color: timeWarning ? '#e53935' : '#5b21b6' }}>
+            {timeDisplay}
+          </span>
         </div>
-
-        {/* Wagon breakdown */}
-        <div style={styles.wagonBreakdown}>
-          {/* <span style={{ color: '#b87333' }}>🟤 {wagonsCollected.copper}</span>
-          <span style={{ color: '#c0c0c0' }}>⬜ {wagonsCollected.silver}</span>
-          <span style={{ color: '#ffd700' }}>🟡 {wagonsCollected.gold}</span>
-          <span style={{ color: '#888', fontSize: 11 }}>│ {tailLength} cars</span> */}
-        </div>
+        <div ref={bonusRef} style={styles.bonusPopup}>+{bonusAmt}</div>
       </div>
 
-      {/* ── Bottom bar ─────────────────────────────────────────────────── */}
-      <div style={styles.bottomBar}>
-        {/* Energy gauge */}
-        <div style={styles.gaugeContainer}>
-          <span style={styles.label}>ENERGY  {isBoosting && <span style={{ color: '#00ffaa', letterSpacing: 3 }}>BOOST!</span>}</span>
-          <div style={styles.gaugeTrack}>
-            <div style={{
-              ...styles.gaugeFill,
-              width: `${energyPct}%`,
-              background: isBoosting
-                ? 'linear-gradient(90deg, #00cc55, #00ffaa)'
-                : 'linear-gradient(90deg, #226633, #44aa66)',
-              boxShadow: isBoosting ? '0 0 8px #00ffaa' : 'none',
-            }} />
-          </div>
+      {/* ── Score + wagon breakdown (top-right) ───────────────────────────── */}
+      <div style={styles.scoreArea}>
+        <div style={styles.scoreCard}>
+          <StarIcon />
+          <span style={styles.scoreValue}>{score}</span>
         </div>
-
-        {/* Shield gauge */}
-        {shieldActive && (
-          <div style={styles.gaugeContainer}>
-            <span style={{ ...styles.label, color: '#ff8800' }}>
-              SHIELD  <span style={{ letterSpacing: 3 }}>{Math.ceil(shieldTimeRemaining)}s</span>
-            </span>
-            <div style={styles.gaugeTrack}>
-              <div style={{
-                ...styles.gaugeFill,
-                width: `${shieldPct}%`,
-                background: 'linear-gradient(90deg, #994400, #ff8800)',
-                boxShadow: '0 0 8px #ff8800',
-              }} />
+        <div style={styles.breakdownRow}>
+          {(['copper', 'silver', 'gold'] as const).map((type) => (
+            <div key={type} style={styles.breakdownItem}>
+              <OctahedronIcon color={WAGON_COLORS[type]} />
+              <span style={styles.breakdownNum}>{wagonsCollected[type]}</span>
             </div>
-          </div>
-        )}
+          ))}
+        </div>
+      </div>
 
-        {/* Difficulty bar */}
-        {/* <div style={styles.gaugeContainer}>
-          <span style={{ ...styles.label, color: diffColor }}>DIFFICULTY</span>
-          <div style={styles.gaugeTrack}>
+      {/* ── Countdown overlay (center) ───────────────────────────────────── */}
+      {timeRemaining > 0 && timeRemaining < 5 && (
+        <div style={styles.countdown}>{Math.ceil(timeRemaining)}</div>
+      )}
+
+      {/* ── Bottom-right: shield + boost ──────────────────────────────────── */}
+      <div style={styles.bottomRight}>
+        {shieldActive && <ShieldCard pct={shieldPct} />}
+
+        <div style={{ ...styles.card, ...styles.boostCard }}>
+          <div style={styles.boostTrack}>
             <div style={{
-              ...styles.gaugeFill,
-              width: `${factor * 100}%`,
-              background: `linear-gradient(90deg, #44cc44, ${diffColor})`,
-              transition: 'width 1s linear, background 1s linear',
+              ...styles.boostFill,
+              height:     `${energyPct}%`,
+              background: isBoosting
+                ? 'linear-gradient(to top, #cc4400, #ff8800)'
+                : 'linear-gradient(to top, #f5a400, #ffe040)',
             }} />
           </div>
-        </div> */}
+          <LightningIcon active={isBoosting} />
+        </div>
       </div>
+
     </div>
   )
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
+
 const styles = {
   root: {
-    position: 'absolute', inset: 0, pointerEvents: 'none',
-    fontFamily: '"Courier New", monospace',
-    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+    position:      'absolute',
+    inset:         0,
+    pointerEvents: 'none',
+    fontFamily:    "'Fredoka One', cursive",
   } satisfies CSSProperties,
 
-  topBar: {
-    display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-    padding: '16px 24px',
-    background: 'linear-gradient(180deg, rgba(0,0,0,0.72) 0%, transparent 100%)',
+  card: {
+    background:   'white',
+    borderRadius:  10,
+    padding:       '8px 14px',
+    display:       'flex',
+    alignItems:    'center',
+    gap:           8,
+    boxShadow:     '0 2px 10px rgba(0,0,0,0.12)',
   } satisfies CSSProperties,
 
-  bottomBar: {
-    display: 'flex', alignItems: 'flex-end', gap: 20,
-    padding: '16px 24px',
-    background: 'linear-gradient(0deg, rgba(0,0,0,0.72) 0%, transparent 100%)',
+  // ── Timer ──────────────────────────────────────────────────────────────────
+  timerCard: {
+    width:          180,
+    background:     'white',
+    borderRadius:   10,
+    padding:        '10px 16px',
+    display:        'flex',
+    alignItems:     'center',
+    justifyContent: 'space-between',
+    boxShadow:      '0 2px 10px rgba(0,0,0,0.12)',
   } satisfies CSSProperties,
 
-  label: { fontSize: 10, letterSpacing: 4, color: '#888', display: 'block', marginBottom: 3 } satisfies CSSProperties,
-
-  timerBox: { display: 'flex', alignItems: 'baseline', gap: 8 } satisfies CSSProperties,
-  timerValue: { fontSize: 44, fontWeight: 900, lineHeight: 1 } satisfies CSSProperties,
-  pulse: { fontSize: 28, color: '#ff4444' } satisfies CSSProperties,
-
-  centerCluster: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 } satisfies CSSProperties,
-  scoreBox: { display: 'flex', flexDirection: 'column', alignItems: 'center' } satisfies CSSProperties,
-  scoreValue: { fontSize: 38, fontWeight: 900, color: '#ffd700', lineHeight: 1 } satisfies CSSProperties,
-
-  diffBadge: {
-    fontSize: 10, letterSpacing: 5, padding: '2px 8px',
-    border: '1px solid', fontWeight: 700, transition: 'color 1s, border-color 1s',
+  topLeft: {
+    position:   'absolute',
+    top:        24,
+    left:       28,
+    display:    'flex',
+    alignItems: 'center',
+    gap:        10,
   } satisfies CSSProperties,
 
-  wagonBreakdown: { display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, fontWeight: 700, alignItems: 'flex-end' } satisfies CSSProperties,
-
-  gaugeContainer: { display: 'flex', flexDirection: 'column', minWidth: 150 } satisfies CSSProperties,
-  gaugeTrack: {
-    height: 7, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.12)',
+  timerValue: {
+    fontSize:           36,
+    lineHeight:         1,
+    fontVariantNumeric: 'tabular-nums',
   } satisfies CSSProperties,
-  gaugeFill: { height: '100%', transition: 'width 0.12s linear' } satisfies CSSProperties,
+
+  bonusPopup: {
+    fontSize:   26,
+    color:      '#3399ff',
+    fontFamily: "'Fredoka One', cursive",
+    opacity:    0,
+  } satisfies CSSProperties,
+
+  // ── Score + breakdown ──────────────────────────────────────────────────────
+  scoreArea: {
+    position:      'absolute',
+    top:           24,
+    right:         28,
+    display:       'flex',
+    flexDirection: 'column',
+    alignItems:    'flex-end',
+    gap:           8,
+  } satisfies CSSProperties,
+
+  scoreCard: {
+    width:          190,
+    background:     'white',
+    borderRadius:   10,
+    padding:        '10px 16px',
+    display:        'flex',
+    alignItems:     'center',
+    justifyContent: 'space-between',
+    boxShadow:      '0 2px 10px rgba(0,0,0,0.12)',
+  } satisfies CSSProperties,
+
+  scoreValue: {
+    fontSize:           36,
+    color:              '#1a1a2e',
+    lineHeight:         1,
+    fontVariantNumeric: 'tabular-nums',
+  } satisfies CSSProperties,
+
+  breakdownRow: {
+    width:          '100%',
+    display:        'flex',
+    alignItems:     'center',
+    justifyContent: 'space-between',
+    background:     'white',
+    borderRadius:   10,
+    padding:        '6px 14px',
+    boxShadow:      '0 2px 10px rgba(0,0,0,0.12)',
+    boxSizing:      'border-box',
+  } satisfies CSSProperties,
+
+  breakdownItem: {
+    display:    'flex',
+    alignItems: 'center',
+    gap:        5,
+  } satisfies CSSProperties,
+
+  breakdownNum: {
+    fontSize:           16,
+    color:              '#1a1a2e',
+    fontVariantNumeric: 'tabular-nums',
+    lineHeight:         1,
+    minWidth:           16,
+    textAlign:          'center',
+  } satisfies CSSProperties,
+
+  // ── Shield ─────────────────────────────────────────────────────────────────
+  shieldIconOverlay: {
+    position:  'absolute',
+    top:       '50%',
+    left:      '50%',
+    transform: 'translate(-50%, -50%)',
+  } satisfies CSSProperties,
+
+  // ── Bottom-right ───────────────────────────────────────────────────────────
+  bottomRight: {
+    position:      'absolute',
+    bottom:        28,
+    right:         28,
+    display:       'flex',
+    flexDirection: 'column',
+    alignItems:    'stretch',
+    gap:           16,
+  } satisfies CSSProperties,
+
+  boostCard: {
+    flexDirection: 'column',
+    alignItems:    'center',
+    padding:       '16px 22px',
+    gap:           14,
+  } satisfies CSSProperties,
+
+  countdown: {
+    position:           'absolute',
+    top:                '50%',
+    left:               '50%',
+    transform:          'translate(-50%, -50%)',
+    fontSize:           260,
+    lineHeight:         1,
+    fontVariantNumeric: 'tabular-nums',
+    color:              '#1a1a2e',
+    opacity:            0.1,
+    userSelect:         'none',
+  } satisfies CSSProperties,
+
+  boostTrack: {
+    width:          12,
+    height:         250,
+    background:     'rgba(0,0,0,0.18)',
+    borderRadius:   8,
+    overflow:       'hidden',
+    display:        'flex',
+    flexDirection:  'column',
+    justifyContent: 'flex-end',
+  } satisfies CSSProperties,
+
+  boostFill: {
+    width:        '100%',
+    borderRadius: 8,
+    transition:   'height 0.12s linear, background 0.3s ease',
+  } satisfies CSSProperties,
 }

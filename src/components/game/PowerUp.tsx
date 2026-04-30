@@ -33,13 +33,12 @@ const ringInnerGeo  = new THREE.RingGeometry(0.78, 0.90, 24)
 const ringOuterGeo  = new THREE.RingGeometry(1.05, 1.18, 24)
 const shadowGeo     = new THREE.CircleGeometry(0.8, 20)
 
-// ─── Shared emissive materials (one per power-up type) ────────────────────────
-// All instances of the same type share the same material — emissiveIntensity
-// is driven once per frame by PowerUpAnimator, not N times per powerup.
-const energyMat = new THREE.MeshStandardMaterial({
-  color: '#29b6f6', emissive: '#0288d1', emissiveIntensity: 0.8,
-  roughness: 0.3, metalness: 0.2,
-})
+// ─── Shared materials (one per power-up type) ────────────────────────────────
+// energyMat uses MeshBasicMaterial so lighting never muddles its color.
+// PowerUpAnimator lerps its color directly between gold and creamy yellow.
+const energyMat        = new THREE.MeshBasicMaterial({ color: '#f5a400' })
+const energyGoldColor  = new THREE.Color('#f5a400')
+const energyCreamColor = new THREE.Color('#fff3a0')
 const battCapMat = new THREE.MeshStandardMaterial({
   color: '#b0bec5', roughness: 0.3, metalness: 0.7,
 })
@@ -48,7 +47,7 @@ const clockBodyMat = new THREE.MeshStandardMaterial({
   roughness: 0.5, metalness: 0,
 })
 const shieldMat = new THREE.MeshStandardMaterial({
-  color: '#2979ff', emissive: '#1a237e', emissiveIntensity: 0.8,
+  color: '#7c3aed', emissive: '#3d0099', emissiveIntensity: 0.8,
   roughness: 0.4, metalness: 0,
 })
 
@@ -66,20 +65,25 @@ function ringMat(color: string, opacity: number) {
 }
 const RING_MAT: Record<string, [THREE.MeshBasicMaterial, THREE.MeshBasicMaterial,
                                   THREE.MeshBasicMaterial, THREE.MeshBasicMaterial]> = {
-  energy: [ringMat('#29b6f6', 0.44), ringMat('#29b6f6', 0.22), ringMat('#29b6f6', 0.10), ringMat('#29b6f6', 0.05)],
+  energy: [ringMat('#ffd740', 0.50), ringMat('#ffd740', 0.26), ringMat('#fff080', 0.14), ringMat('#fff080', 0.06)],
   clock:  [ringMat('#448aff', 0.44), ringMat('#448aff', 0.22), ringMat('#448aff', 0.10), ringMat('#448aff', 0.05)],
-  shield: [ringMat('#2979ff', 0.44), ringMat('#2979ff', 0.22), ringMat('#2979ff', 0.10), ringMat('#2979ff', 0.05)],
+  shield: [ringMat('#9d46ff', 0.44), ringMat('#9d46ff', 0.22), ringMat('#9d46ff', 0.10), ringMat('#9d46ff', 0.05)],
 }
 
-const EMISSIVE_MATS = [energyMat, clockBodyMat, shieldMat]
+const EMISSIVE_MATS = [clockBodyMat, shieldMat]
 
 // ─── PowerUpAnimator ──────────────────────────────────────────────────────────
 // Mount once in the scene. Updates shared emissive materials a single time
 // per frame regardless of how many power-ups are active.
 export function PowerUpAnimator(): null {
   useFrame(({ clock }) => {
-    const intensity = 0.4 + Math.sin(clock.getElapsedTime() * 2.4) * 0.8
+    const t         = clock.getElapsedTime()
+    const intensity = 0.4 + Math.sin(t * 2.4) * 0.8
     for (const mat of EMISSIVE_MATS) mat.emissiveIntensity = intensity
+
+    // Lerp energy battery color between gold and creamy yellow
+    const lerpT = (Math.sin(t * 2.4) + 1) / 2
+    energyMat.color.lerpColors(energyGoldColor, energyCreamColor, lerpT)
   })
   return null
 }

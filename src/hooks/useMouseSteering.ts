@@ -2,13 +2,6 @@ import { useEffect, useRef } from 'react'
 import { useGameStore } from '../store/gameStore'
 import { AudioEngine } from '../audio/AudioEngine'
 import type { MouseNDC } from '../types'
-
-/**
- * Tracks normalised device coordinates via pointer events (mouse, touch, stylus)
- * and exposes a stable ref that the Train component reads inside `useFrame`.
- *
- * Also binds pointerdown/pointerup to start/stop the energy boost.
- */
 export function useMouseSteering(): React.MutableRefObject<MouseNDC> {
   const mouseRef   = useRef<MouseNDC>({ x: 0, y: 0 })
   const startBoost = useGameStore((s) => s.startBoost)

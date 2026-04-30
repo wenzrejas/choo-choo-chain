@@ -29,7 +29,7 @@ export const WAGON_POINTS: Record<WagonType, number> = {
 export const WAGON_COLORS: Record<WagonType, string> = {
   // Kenney-style saturated toy colours — pop clearly against bright grass
   copper: '#e07b39',   // warm vivid orange-brown
-  silver: '#7db0c9',   // muted blue-grey (Kenney uses this for stone/metal)
+  silver: '#589bff',   // muted blue-grey (Kenney uses this for stone/metal)
   gold:   '#fdd835',   // bright Kenney yellow (same as coin colour in TrainMania)
 }
 
