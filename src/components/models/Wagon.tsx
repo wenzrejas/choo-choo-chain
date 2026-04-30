@@ -76,6 +76,20 @@ function idToSpinRate(id: string): number {
   return 0.4 + (h % 100) / 100 * 1.0  // [0.4, 1.4] rad/s
 }
 
+// Per-id caches so the FNV hash loops don't run every frame inside useFrame.
+const _spinRateCache = new Map<string, number>()
+const _yawCache      = new Map<string, number>()
+function cachedSpinRate(id: string): number {
+  let v = _spinRateCache.get(id)
+  if (v === undefined) { v = idToSpinRate(id); _spinRateCache.set(id, v) }
+  return v
+}
+function cachedYaw(id: string): number {
+  let v = _yawCache.get(id)
+  if (v === undefined) { v = idToYaw(id); _yawCache.set(id, v) }
+  return v
+}
+
 // ─── GLTF hook ────────────────────────────────────────────────────────────────
 // Safe to call in multiple components — useGLTF caches the result by URL.
 export function useWagonGLTF(): WagonGLTF {
@@ -174,6 +188,7 @@ export function WagonInstances(): null {
     ringRef.current   = ring
 
     return () => {
+      ;(ring.material as THREE.MeshBasicMaterial).dispose()
       scene.remove(body, wf, wb, cargo, shadow, ring)
       bodyRef.current = wfRef.current = wbRef.current = cargoRef.current = shadowRef.current = ringRef.current = null
     }
@@ -199,7 +214,7 @@ export function WagonInstances(): null {
 
     for (let i = 0; i < count; i++) {
       const { id, type, position: p } = wagons[i]
-      const spin = t * idToSpinRate(id) + idToYaw(id)
+      const spin = t * cachedSpinRate(id) + cachedYaw(id)
       const bob  = 0.06 + Math.sin(t * 1.5 + p.x * 0.5) * 0.13
       const sy   = Math.sin(spin)
       const cy   = Math.cos(spin)
@@ -244,13 +259,15 @@ export function WagonInstances(): null {
       ring.setMatrixAt(i, _dummy.matrix)
     }
 
-    body.instanceMatrix.needsUpdate   = true
-    wf.instanceMatrix.needsUpdate     = true
-    wb.instanceMatrix.needsUpdate     = true
-    cargo.instanceMatrix.needsUpdate  = true
-    shadow.instanceMatrix.needsUpdate = true
-    ring.instanceMatrix.needsUpdate   = true
-    if (count > 0 && cargo.instanceColor) cargo.instanceColor.needsUpdate = true
+    if (count > 0) {
+      body.instanceMatrix.needsUpdate   = true
+      wf.instanceMatrix.needsUpdate     = true
+      wb.instanceMatrix.needsUpdate     = true
+      cargo.instanceMatrix.needsUpdate  = true
+      shadow.instanceMatrix.needsUpdate = true
+      ring.instanceMatrix.needsUpdate   = true
+      if (cargo.instanceColor) cargo.instanceColor.needsUpdate = true
+    }
   })
 
   return null

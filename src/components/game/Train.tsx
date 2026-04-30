@@ -185,13 +185,19 @@ export default function Train({ mouseRef }: TrainProps): JSX.Element {
 
     // ── 5. Record position history (distance-based) ───────────────────────
     if (posRef.current.distanceTo(lastSampleRef.current) >= SAMPLE_STEP) {
-      historyRef.current.unshift(posRef.current.clone())
       lastSampleRef.current.copy(posRef.current)
-      // Keep enough history for ALL current segments (use live tailLength)
       const needed = (tailLength + 2) * HISTORY_PER_SEGMENT + 8
-      if (historyRef.current.length > needed) {
-        historyRef.current.length = needed
+      // Recycle the oldest entry when at capacity — avoids allocating a new
+      // Vector3 every sample (which at base speed fires every frame at 60fps).
+      let sample: THREE.Vector3
+      if (historyRef.current.length >= needed) {
+        sample = historyRef.current.pop()!
+        if (historyRef.current.length >= needed - 1) historyRef.current.length = needed - 1
+      } else {
+        sample = new THREE.Vector3()
       }
+      sample.copy(posRef.current)
+      historyRef.current.unshift(sample)
     }
 
     // ── 6. Update locomotive transform ────────────────────────────────────

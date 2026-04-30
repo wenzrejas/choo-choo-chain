@@ -85,8 +85,9 @@ export default function GameScene(): JSX.Element {
     <Canvas
       shadows
       style={{ position: 'absolute', inset: 0 }}
-      gl={{ antialias: true }}
+      gl={{ antialias: true, powerPreference: 'high-performance' }}
       dpr={[1, 1.5]}
+      performance={{ min: 0.5 }}
     >
       <Suspense fallback={null}>
         <Scene mouseRef={mouseRef} />
