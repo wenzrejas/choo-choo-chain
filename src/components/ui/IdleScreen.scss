@@ -1,0 +1,91 @@
+@use '../../styles/variables' as *;
+
+.idle-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  font-family: $f-display;
+
+  @include screen-bg;
+
+  // ── Loading state ───────────────────────────────────────────────────────────
+  &__loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 420px;
+    padding: 0 32px;
+
+    @media (max-width: $bp-mobile) { gap: 14px; padding: 0 24px; }
+  }
+
+  &__loading-label {
+    font-size: 13px;
+    letter-spacing: 5px;
+    color: $c-muted;
+    font-family: $f-body;
+    font-weight: 700;
+
+    @media (max-width: $bp-mobile) { font-size: 11px; letter-spacing: 4px; }
+  }
+
+  &__loading-pct {
+    font-size: 64px;
+    color: $c-gold;
+    line-height: 1;
+    letter-spacing: 0;
+    font-variant-numeric: tabular-nums;
+
+    @media (max-width: $bp-tablet) { font-size: 52px; }
+    @media (max-width: $bp-mobile) { font-size: 40px; }
+  }
+
+  &__track {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+  }
+
+  &__fill {
+    height: 100%;
+    width: var(--fill-w, 0%);
+    border-radius: 3px;
+    background: linear-gradient(to right, $c-gold-mid, $c-gold);
+    transition: width 0.2s ease-out;
+    box-shadow: 0 0 10px rgba(255, 224, 64, 0.5);
+  }
+
+  // ── Loaded content ──────────────────────────────────────────────────────────
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 72px;
+    padding: 32px;
+    width: 100%;
+    max-width: 620px;
+    margin-top: -200px;
+
+    @media (max-width: $bp-tablet) { gap: 48px; margin-top: -120px; padding: 24px; }
+    @media (max-width: $bp-mobile) { gap: 32px; margin-top: -60px; padding: 20px; }
+  }
+
+  &__logo {
+    width: 100%;
+  }
+
+  // ── Start button ────────────────────────────────────────────────────────────
+  &__btn {
+    @include btn-primary;
+
+    @media (max-width: $bp-tablet) { padding: 12px 44px; font-size: 18px; }
+    @media (max-width: $bp-mobile) { padding: 11px 32px; font-size: 16px; letter-spacing: 1.5px; }
+  }
+}

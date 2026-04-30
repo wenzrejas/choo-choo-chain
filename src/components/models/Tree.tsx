@@ -4,7 +4,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useGameStore } from '../../store/gameStore'
 
-export const TREE_MODEL_PATH = '/choo-choo-chain/models/obstacles/tree.glb'
+export const TREE_MODEL_PATH = `${import.meta.env.BASE_URL}models/obstacles/tree.glb`
 
 const MAX_TREES  = 500
 const TREE_SCALE = 2.5

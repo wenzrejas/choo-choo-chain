@@ -1,6 +1,7 @@
 import { Suspense, type JSX } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { Sky }    from '@react-three/drei'
+import * as THREE from 'three'
 
 import { useMouseSteering }              from '../../hooks/useMouseSteering'
 import { useGameStore }                  from '../../store/gameStore'
@@ -83,7 +84,7 @@ export default function GameScene(): JSX.Element {
 
   return (
     <Canvas
-      shadows
+      shadows={{ type: THREE.PCFShadowMap }}
       style={{ position: 'absolute', inset: 0 }}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
       dpr={[1, 1.5]}

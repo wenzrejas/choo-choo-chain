@@ -49,7 +49,7 @@ function createRibbonGeometry(length: number, segments = 40): THREE.BufferGeomet
   return geo
 }
 
-// ─── Shaders — faithful to Bruno Simon's window-sweep formula ─────────────────
+// ─── Shaders — window-sweep formula ─────────────────
 const vertexShader = /* glsl */`
   attribute float aRatio;
   attribute float aSide;

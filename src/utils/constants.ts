@@ -29,8 +29,8 @@ export const WAGON_POINTS: Record<WagonType, number> = {
 export const WAGON_COLORS: Record<WagonType, string> = {
   // Kenney-style saturated toy colours — pop clearly against bright grass
   copper: '#e07b39',   // warm vivid orange-brown
-  silver: '#589bff',   // muted blue-grey (Kenney uses this for stone/metal)
-  gold:   '#fdd835',   // bright Kenney yellow (same as coin colour in TrainMania)
+  silver: '#589bff',   // muted blue-grey
+  gold:   '#fdd835',   // bright yellow
 }
 
 // ─── Entity type lists ────────────────────────────────────────────────────────
@@ -61,8 +61,10 @@ export const CAMERA_LOOK_LAG      = 0.14 as const
 export const CAMERA_LOOK_AHEAD    = 2   as const
 export const CAMERA_ROLL_STRENGTH = 0 as const
 export const CAMERA_ROLL_LAG      = 0 as const
-export const CAMERA_BASE_FOV      = 50   as const
-export const CAMERA_BOOST_FOV     = 55   as const
+export const CAMERA_BASE_FOV         = 50   as const
+export const CAMERA_BOOST_FOV        = 55   as const
+export const CAMERA_MOBILE_BASE_FOV  = 68   as const
+export const CAMERA_MOBILE_BOOST_FOV = 75   as const
 export const CAMERA_FOV_LAG       = 0.08 as const
 
 // ─── Zone grid ───────────────────────────────────────────────────────────────

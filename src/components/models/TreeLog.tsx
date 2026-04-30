@@ -4,7 +4,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useGameStore } from '../../store/gameStore'
 
-export const TREELOG_MODEL_PATH = '/choo-choo-chain/models/obstacles/tree-log-small.glb'
+export const TREELOG_MODEL_PATH = `${import.meta.env.BASE_URL}models/obstacles/tree-log-small.glb`
 
 const MAX_BUSHES   = 500
 const TREELOG_SCALE = 2.5

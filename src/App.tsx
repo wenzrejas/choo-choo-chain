@@ -6,6 +6,7 @@ import EndScreen    from './components/ui/EndScreen'
 import GameScene    from './components/game/GameScene'
 import HUD          from './components/ui/HUD'
 import AudioManager from './audio/AudioManager'
+import './App.scss'
 
 export default function App(): JSX.Element {
   const phase      = useGameStore((s) => s.phase)
@@ -22,7 +23,7 @@ export default function App(): JSX.Element {
   }, [phase])
 
   return (
-    <div style={{ width: '100vw', height: '100vh', position: 'relative', background: '#0a0a0a' }}>
+    <div className="app">
       <AudioManager />
 
       {phase === 'playing' && (
@@ -34,17 +35,7 @@ export default function App(): JSX.Element {
       {phase === 'idle' && <IdleScreen />}
       {phase === 'end'  && <EndScreen  />}
 
-      <div
-        ref={overlayRef}
-        style={{
-          position:      'absolute',
-          inset:         0,
-          background:    '#000',
-          pointerEvents: 'none',
-          zIndex:        9999,
-          opacity:       0,
-        }}
-      />
+      <div ref={overlayRef} className="app__overlay" />
     </div>
   )
 }

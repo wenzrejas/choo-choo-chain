@@ -1,0 +1,249 @@
+@use '../../styles/variables' as *;
+
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-family: $f-display;
+
+  // ── Timer (top-left) ────────────────────────────────────────────────────────
+  &__top-left {
+    position: absolute;
+    top: 24px;
+    left: 28px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    @media (max-width: $bp-tablet) { top: 16px; left: 16px; }
+    @media (max-width: $bp-mobile) { top: 12px; left: 12px; gap: 7px; }
+    @media (max-width: $bp-xs)     { top: 10px; left: 10px; gap: 5px; }
+  }
+
+  &__timer-card {
+    width: 180px;
+    background: white;
+    border-radius: 10px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: $shadow-card;
+
+    @media (max-width: $bp-tablet) { width: 150px; padding: 8px 12px; }
+    @media (max-width: $bp-mobile) { width: 120px; padding: 6px 10px; border-radius: 8px; }
+    @media (max-width: $bp-xs)     { width: 92px;  padding: 5px 8px;  border-radius: 6px; svg { width: 22px; height: 23px; } }
+  }
+
+  &__timer-value {
+    font-size: 36px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: $c-purple-timer;
+
+    @media (max-width: $bp-tablet) { font-size: 28px; }
+    @media (max-width: $bp-mobile) { font-size: 22px; }
+    @media (max-width: $bp-xs)     { font-size: 16px; }
+
+    &--warning {
+      color: $c-red;
+    }
+  }
+
+  &__bonus-popup {
+    font-size: 26px;
+    color: $c-blue;
+    opacity: 0;
+
+    @media (max-width: $bp-mobile) { font-size: 18px; }
+    @media (max-width: $bp-xs)     { font-size: 14px; }
+  }
+
+  // ── Score + breakdown (top-right) ───────────────────────────────────────────
+  &__score-area {
+    position: absolute;
+    top: 24px;
+    right: 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+
+    @media (max-width: $bp-tablet) { top: 16px; right: 16px; }
+    @media (max-width: $bp-mobile) { top: 12px; right: 12px; gap: 5px; }
+    @media (max-width: $bp-xs)     { top: 10px; right: 10px; gap: 4px; }
+  }
+
+  &__score-card {
+    width: 190px;
+    background: white;
+    border-radius: 10px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: $shadow-card;
+
+    @media (max-width: $bp-tablet) { width: 158px; padding: 8px 12px; }
+    @media (max-width: $bp-mobile) { width: 126px; padding: 6px 10px; border-radius: 8px; }
+    @media (max-width: $bp-xs)     { width: 98px;  padding: 5px 8px;  border-radius: 6px; svg { width: 20px; height: 22px; } }
+  }
+
+  &__score-value {
+    font-size: 36px;
+    color: $c-text;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+
+    @media (max-width: $bp-tablet) { font-size: 28px; }
+    @media (max-width: $bp-mobile) { font-size: 22px; }
+    @media (max-width: $bp-xs)     { font-size: 16px; }
+  }
+
+  &__breakdown-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    border-radius: 10px;
+    padding: 6px 14px;
+    box-shadow: $shadow-card;
+    box-sizing: border-box;
+
+    @media (max-width: $bp-tablet) { padding: 5px 10px; border-radius: 8px; }
+    @media (max-width: $bp-mobile) { padding: 4px 8px; }
+    @media (max-width: $bp-xs)     { padding: 3px 6px; border-radius: 6px; }
+  }
+
+  &__breakdown-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    @media (max-width: $bp-mobile) { gap: 3px; }
+    @media (max-width: $bp-xs)     { gap: 2px; }
+  }
+
+  &__breakdown-num {
+    font-size: 16px;
+    color: $c-text;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    min-width: 16px;
+    text-align: center;
+
+    @media (max-width: $bp-tablet) { font-size: 14px; min-width: 14px; }
+    @media (max-width: $bp-mobile) { font-size: 12px; min-width: 12px; }
+    @media (max-width: $bp-xs)     { font-size: 10px; min-width: 10px; }
+  }
+
+  // ── Countdown overlay (center) ──────────────────────────────────────────────
+  &__countdown {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 260px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: $c-text;
+    opacity: 0.1;
+    user-select: none;
+
+    @media (max-width: $bp-tablet) { font-size: 180px; }
+    @media (max-width: $bp-mobile) { font-size: 130px; }
+    @media (max-width: $bp-xs)     { font-size: 100px; }
+  }
+
+  // ── Shield + boost (bottom-right) ───────────────────────────────────────────
+  &__bottom-right {
+    position: absolute;
+    bottom: 28px;
+    right: 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+
+    @media (max-width: $bp-tablet) { bottom: 16px; right: 16px; gap: 10px; }
+    @media (max-width: $bp-mobile) { bottom: 12px; right: 12px; gap: 8px; }
+    @media (max-width: $bp-xs)     { bottom: 10px; right: 10px; gap: 6px; }
+  }
+
+  // ── Shared card ─────────────────────────────────────────────────────────────
+  &__card {
+    background: white;
+    border-radius: 10px;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: $shadow-card;
+
+    @media (max-width: $bp-mobile) { border-radius: 8px; }
+    @media (max-width: $bp-xs)     { border-radius: 6px; }
+  }
+
+  // ── Shield card ─────────────────────────────────────────────────────────────
+  &__shield-card {
+    padding: 6px;
+    position: relative;
+    justify-content: center;
+
+    @media (max-width: $bp-mobile) { padding: 4px; }
+    @media (max-width: $bp-xs)     { padding: 3px; svg { width: 38px; height: 38px; } }
+  }
+
+  &__shield-arc {
+    transition: stroke-dashoffset 0.15s linear;
+  }
+
+  &__shield-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    @media (max-width: $bp-xs) { svg { width: 15px; height: 18px; } }
+  }
+
+  // ── Boost card ──────────────────────────────────────────────────────────────
+  &__boost-card {
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 22px;
+    gap: 14px;
+
+    @media (max-width: $bp-tablet) { padding: 12px 16px; gap: 10px; }
+    @media (max-width: $bp-mobile) { padding: 10px 12px; gap: 8px; }
+    @media (max-width: $bp-xs)     { padding: 8px 10px;  gap: 6px; svg { width: 15px; height: 20px; } }
+  }
+
+  &__boost-track {
+    width: 12px;
+    height: 250px;
+    background: rgba(0, 0, 0, 0.18);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+
+    @media (max-width: $bp-tablet) { height: 180px; }
+    @media (max-width: $bp-mobile) { height: 130px; width: 10px; }
+    @media (max-width: $bp-xs)     { height: 100px; width: 8px; }
+  }
+
+  &__boost-fill {
+    width: 100%;
+    height: var(--fill-h, 0%);
+    border-radius: 8px;
+    background: linear-gradient(to top, $c-gold-mid, $c-gold);
+    transition: height 0.12s linear, background 0.3s ease;
+
+    &--boosting {
+      background: linear-gradient(to top, #cc4400, #ff8800);
+    }
+  }
+}

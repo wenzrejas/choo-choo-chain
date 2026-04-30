@@ -1,0 +1,17 @@
+@use './styles/variables' as *;
+
+.app {
+  width: 100vw;
+  height: 100vh;
+  height: 100svh;
+  position: relative;
+  background: #0a0a0a;
+}
+
+.app__overlay {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  pointer-events: none;
+  z-index: 9999;
+}

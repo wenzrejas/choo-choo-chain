@@ -11,6 +11,8 @@ import {
   CAMERA_ROLL_LAG,
   CAMERA_BASE_FOV,
   CAMERA_BOOST_FOV,
+  CAMERA_MOBILE_BASE_FOV,
+  CAMERA_MOBILE_BOOST_FOV,
   CAMERA_FOV_LAG,
   TRAIN_BOOST_SPEED,
   TRAIN_BASE_SPEED,
@@ -27,6 +29,10 @@ import { angleDelta } from '../../utils/math'
 const _desiredPos = new THREE.Vector3()
 const _lookTarget = new THREE.Vector3()
 const _upVec      = new THREE.Vector3()
+
+const isMobile = window.matchMedia('(pointer: coarse)').matches
+const BASE_FOV  = isMobile ? CAMERA_MOBILE_BASE_FOV  : CAMERA_BASE_FOV
+const BOOST_FOV = isMobile ? CAMERA_MOBILE_BOOST_FOV : CAMERA_BOOST_FOV
 
 export default function FollowCamera(): null {
   const { camera } = useThree()
@@ -97,7 +103,7 @@ export default function FollowCamera(): null {
     camera.lookAt(smoothLookRef.current)
 
     // ── 5. FOV boost stretch ──────────────────────────────────────────────
-    const targetFov  = speed > TRAIN_BASE_SPEED + 1 ? CAMERA_BOOST_FOV : CAMERA_BASE_FOV
+    const targetFov  = speed > TRAIN_BASE_SPEED + 1 ? BOOST_FOV : BASE_FOV
     const cam = camera as THREE.PerspectiveCamera
     if (cam.fov !== undefined) {
       cam.fov += (targetFov - cam.fov) * CAMERA_FOV_LAG

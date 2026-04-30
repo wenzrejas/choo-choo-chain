@@ -1,0 +1,67 @@
+// ─── Colors ───────────────────────────────────────────────────────────────────
+$c-bg-dark:      #18202e;
+$c-gold:         #ffe040;
+$c-gold-mid:     #f5a400;
+$c-gold-dark:    #b87200;
+$c-purple:       #7c3aed;
+$c-purple-timer: #5b21b6;
+$c-purple-dark:  #4c1d95;
+$c-text:         #1a1a2e;
+$c-muted:        #7a8a9a;
+$c-muted-dark:   #6a7a8a;
+$c-muted-light:  #aabbcc;
+$c-blue:         #3399ff;
+$c-red:          #e53935;
+$c-copper:       #b87333;
+$c-silver:       #aaaaaa;
+
+// ─── Breakpoints ──────────────────────────────────────────────────────────────
+$bp-tablet: 768px;
+$bp-mobile: 480px;
+$bp-xs:     390px;
+
+// ─── Typography ───────────────────────────────────────────────────────────────
+$f-display: 'Fredoka One', cursive;
+$f-body:    'Nunito', sans-serif;
+
+// ─── Elevation ────────────────────────────────────────────────────────────────
+$shadow-card: 0 2px 10px rgba(0, 0, 0, 0.12);
+
+// ─── Noise/vignette background (shared by idle + end screens) ─────────────────
+$noise-svg:      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E");
+$noise-vignette: radial-gradient(ellipse 85% 65% at 50% 45%, transparent 20%, rgba(0, 0, 0, 0.45) 100%);
+
+// ─── Shared mixin ─────────────────────────────────────────────────────────────
+@mixin screen-bg {
+  background-color: $c-bg-dark;
+  background-image: $noise-svg, $noise-vignette;
+  background-repeat: repeat, no-repeat;
+  background-size: 256px 256px, 100% 100%;
+}
+
+// ─── Shared game button (gold, 3-D press effect) ──────────────────────────────
+@mixin btn-primary {
+  padding: 14px 54px;
+  font-size: 20px;
+  letter-spacing: 2px;
+  font-family: $f-display;
+  color: #1a1000;
+  background: linear-gradient(to bottom, $c-gold 0%, $c-gold-mid 100%);
+  border: none;
+  border-bottom: 6px solid $c-gold-dark;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+
+  &:hover {
+    transform: scale(1.07) translateY(-3px);
+    filter: brightness(1.12);
+    box-shadow: 0 8px 28px rgba(245, 164, 0, 0.45);
+  }
+
+  &:active {
+    transform: scale(0.96) translateY(2px);
+    filter: brightness(0.9);
+    box-shadow: none;
+  }
+}
