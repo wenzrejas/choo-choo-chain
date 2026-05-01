@@ -12,13 +12,11 @@ import PowerUp, { PowerUpAnimator }      from './PowerUp'
 import FollowCamera                      from './FollowCamera'
 import ZoneManager                       from '../../zones/ZoneManager'
 import { WagonInstances }                from '../models/Wagon'
-import { TreeInstances }                 from '../models/Tree'
-import { BoulderInstances }              from '../models/Boulder'
-import { TreeLogInstances }              from '../models/TreeLog'
+import { TreeInstances, BoulderInstances, TreeLogInstances } from '../models/ObstacleInstances'
 import WindLines                         from './WindLines'
 import type { MouseNDC }                 from '../../types'
 
-function Scene({ mouseRef }: { mouseRef: React.MutableRefObject<MouseNDC> }): JSX.Element {
+function Scene({ mouseRef }: { mouseRef: React.RefObject<MouseNDC> }): JSX.Element {
   // Only powerups still need a per-item React component (individual bob/spin).
   // Wagons and obstacles are fully instanced and read the store themselves.
   const powerups = useGameStore((s) => s.powerups)

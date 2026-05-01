@@ -50,7 +50,7 @@ $noise-vignette: radial-gradient(ellipse 85% 65% at 50% 45%, transparent 20%, rg
   border: none;
   border-bottom: 6px solid $c-gold-dark;
   border-radius: 20px;
-  cursor: pointer;
+  cursor: url('/hand-point.svg') 8 0, pointer;
   transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
 
   &:hover {

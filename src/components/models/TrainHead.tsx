@@ -14,7 +14,7 @@ const SMOKE_LIFETIME = 2   // seconds
 const SMOKE_PER_SEC  = 30
 
 // Module-level scratch (never reallocated)
-const _sd           = new THREE.Object3D()
+const _smokeDummy   = new THREE.Object3D()
 const _chimneyWorld = new THREE.Vector3()
 // Chimney tip in group local space — group scale is 0.7, so world offset = local × 0.7
 const _chimneyLocal = new THREE.Vector3(0, 1.3, 0.8)
@@ -108,10 +108,10 @@ function SmokeParticles({ groupRef }: { groupRef: React.RefObject<THREE.Group | 
       const t     = 1 - life.current[i] / SMOKE_LIFETIME
       const scale = 0.08 + t * 0.55
 
-      _sd.position.set(pos.current[i3], pos.current[i3 + 1], pos.current[i3 + 2])
-      _sd.scale.setScalar(scale)
-      _sd.updateMatrix()
-      mesh.setMatrixAt(count, _sd.matrix)
+      _smokeDummy.position.set(pos.current[i3], pos.current[i3 + 1], pos.current[i3 + 2])
+      _smokeDummy.scale.setScalar(scale)
+      _smokeDummy.updateMatrix()
+      mesh.setMatrixAt(count, _smokeDummy.matrix)
       count++
     }
 

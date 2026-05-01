@@ -79,10 +79,6 @@ export function sfxPowerup(_type: 'energy' | 'clock' | 'shield'): void {
   playAt(POWER_UP_URL, 0.4)
 }
 
-// ─── Speed boost (start) ──────────────────────────────────────────────────────
-
-export function sfxBoostStart(): void {}
-
 // ─── Shield activate ─────────────────────────────────────────────────────────
 
 export function sfxShieldActivate(): void {
@@ -101,6 +97,3 @@ export function sfxClick(): void {
   playAt(BUTTON_CLICK_URL, 1)
 }
 
-// ─── UI hover (subtle) ────────────────────────────────────────────────────────
-
-export function sfxHover(): void {}

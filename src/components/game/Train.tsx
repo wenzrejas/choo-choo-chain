@@ -10,6 +10,7 @@ import {
   trainSpeedRef,
   trainHistoryRef,
   trainTailLenRef,
+  cameraShakeRef,
 } from '../../trainState'
 import {
   TRAIN_BASE_SPEED,
@@ -29,7 +30,6 @@ import {
   sfxPowerup,
   sfxShieldActivate,
   sfxClockBonus,
-  sfxBoostStart,
 } from '../../audio/sfx'
 import { TrainHead } from '../models/TrainHead'
 import { useWagonGLTF, TYPE_COLORS, cargoInstanceMat } from '../models/Wagon'
@@ -48,7 +48,7 @@ const _mouseWorld  = new THREE.Vector3()
 
 // ─── Train ────────────────────────────────────────────────────────────────────
 interface TrainProps {
-  mouseRef: React.MutableRefObject<MouseNDC>
+  mouseRef: React.RefObject<MouseNDC>
 }
 
 export default function Train({ mouseRef }: TrainProps): JSX.Element {
@@ -66,10 +66,6 @@ export default function Train({ mouseRef }: TrainProps): JSX.Element {
   const angleRef      = useRef(0)
   const historyRef    = useRef<THREE.Vector3[]>([])
   const lastSampleRef = useRef(new THREE.Vector3(0, 0.4, 0))
-
-  // ── Sfx edge-detection refs (track previous values) ──────────────────────
-  const prevBoostRef  = useRef(false)
-  const prevShieldRef = useRef(false)
 
   // Reset module-level shared refs on each new game session so FollowCamera
   // snaps to the correct spawn position instead of the stale last-game position.
@@ -159,14 +155,7 @@ export default function Train({ mouseRef }: TrainProps): JSX.Element {
     if (isBoosting) drainEnergy(ENERGY_DRAIN_RATE * dt)
     addEnergy(ENERGY_REGEN_RATE * dt)
 
-    // ── 2. Sfx edge detection (boost / shield) ────────────────────────────
-    const shieldNow = useGameStore.getState().shieldActive
-    if (isBoosting && !prevBoostRef.current)  sfxBoostStart()
-    if (shieldNow  && !prevShieldRef.current) sfxShieldActivate()
-    prevBoostRef.current  = isBoosting
-    prevShieldRef.current = shieldNow
-
-    // ── 3. Steer toward mouse ─────────────────────────────────────────────
+    // ── 2. Steer toward mouse ─────────────────────────────────────────────
     _raycaster.setFromCamera(mouseRef.current as THREE.Vector2, camera)
     _raycaster.ray.intersectPlane(_groundPlane, _mouseWorld)
 
@@ -295,13 +284,15 @@ export default function Train({ mouseRef }: TrainProps): JSX.Element {
     }
 
     // ── 11. Collision: obstacles ──────────────────────────────────────────
+    const shieldActive = useGameStore.getState().shieldActive
     for (const o of obstacles) {
       if (o.destroyed) continue
       if (distXZRaw(posRef.current, o.position) <
           COLLISION_RADII.obstacle + COLLISION_RADII.trainHead) {
-        if (shieldNow) {
+        if (shieldActive) {
           sfxObstacleHit()
           destroyObstacle(o.id)
+          cameraShakeRef.current = 1.0
         } else {
           sfxGameOver()
           triggerGameOver()

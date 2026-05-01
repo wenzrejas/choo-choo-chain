@@ -3,22 +3,8 @@ import gsap from 'gsap'
 import { useGameStore } from '../../store/gameStore'
 import { WAGON_POINTS } from '../../utils/constants'
 import { sfxClick } from '../../audio/sfx'
+import { WagonIcon } from './WagonIcon'
 import './EndScreen.scss'
-
-// ─── Wagon icon ───────────────────────────────────────────────────────────────
-
-const WAGON_COLORS = { copper: '#b87333', silver: '#aaaaaa', gold: '#f5a400' } as const
-
-function OctahedronIcon({ color }: { color: string }): JSX.Element {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-      <polygon points="7,0 13,6 7,7 1,6" fill={color} />
-      <polygon points="7,14 13,8 7,7 1,8" fill={color} opacity="0.6" />
-      <polygon points="1,6 7,7 1,8" fill="rgba(0,0,0,0.08)" />
-      <polygon points="13,6 7,7 13,8" fill="rgba(0,0,0,0.08)" />
-    </svg>
-  )
-}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -31,7 +17,6 @@ export default function EndScreen(): JSX.Element {
   const rootRef      = useRef<HTMLDivElement>(null)
   const titleRef     = useRef<HTMLDivElement>(null)
   const scoreSectRef = useRef<HTMLDivElement>(null)
-  const scoreValRef  = useRef<HTMLSpanElement>(null)
   const rowsRef      = useRef<HTMLDivElement>(null)
   const btnsRef      = useRef<HTMLDivElement>(null)
 
@@ -90,14 +75,14 @@ export default function EndScreen(): JSX.Element {
 
         <div ref={scoreSectRef} className="end-screen__score-section">
           <span className="end-screen__score-label">FINAL SCORE</span>
-          <span ref={scoreValRef} className="end-screen__score-value">{displayScore}</span>
+          <span className="end-screen__score-value">{displayScore}</span>
         </div>
 
         <div ref={rowsRef} className="end-screen__breakdown">
           {(['copper', 'silver', 'gold'] as const).map((type) => (
             <div key={type} className="end-screen__row">
               <div className="end-screen__row-left">
-                <OctahedronIcon color={WAGON_COLORS[type]} />
+                <WagonIcon type={type} />
                 <span className="end-screen__type-name" data-type={type}>
                   {type.charAt(0).toUpperCase() + type.slice(1)}
                 </span>

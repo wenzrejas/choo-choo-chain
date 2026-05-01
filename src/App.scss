@@ -6,6 +6,11 @@
   height: 100svh;
   position: relative;
   background: #0a0a0a;
+
+  &[data-phase='playing'],
+  &[data-phase='playing'] * {
+    cursor: url('/navigation-n.svg') 12 12, crosshair;
+  }
 }
 
 .app__overlay {

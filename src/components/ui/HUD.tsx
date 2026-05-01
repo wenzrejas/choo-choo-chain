@@ -2,9 +2,8 @@ import { useEffect, useRef, useState, type JSX } from 'react'
 import gsap from 'gsap'
 import { useGameStore } from '../../store/gameStore'
 import { ENERGY_MAX, SHIELD_DURATION } from '../../utils/constants'
+import { WagonIcon } from './WagonIcon'
 import './HUD.scss'
-
-const WAGON_COLORS = { copper: '#b87333', silver: '#aaaaaa', gold: '#f5a400' } as const
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -18,17 +17,6 @@ function ClockIcon(): JSX.Element {
       <line x1="18" y1="18" x2="18" y2="8"  stroke="#4c1d95" strokeWidth="3" strokeLinecap="round" />
       <line x1="18" y1="18" x2="26" y2="18" stroke="#4c1d95" strokeWidth="3" strokeLinecap="round" />
       <circle cx="18" cy="18" r="2.5" fill="#4c1d95" />
-    </svg>
-  )
-}
-
-function OctahedronIcon({ color }: { color: string }): JSX.Element {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-      <polygon points="7,0 13,6 7,7 1,6" fill={color} />
-      <polygon points="7,14 13,8 7,7 1,8" fill={color} opacity="0.6" />
-      <polygon points="1,6 7,7 1,8" fill="rgba(0,0,0,0.08)" />
-      <polygon points="13,6 7,7 13,8" fill="rgba(0,0,0,0.08)" />
     </svg>
   )
 }
@@ -161,7 +149,7 @@ export default function HUD(): JSX.Element {
         <div className="hud__breakdown-row">
           {(['copper', 'silver', 'gold'] as const).map((type) => (
             <div key={type} className="hud__breakdown-item">
-              <OctahedronIcon color={WAGON_COLORS[type]} />
+              <WagonIcon type={type} />
               <span className="hud__breakdown-num">{wagonsCollected[type]}</span>
             </div>
           ))}

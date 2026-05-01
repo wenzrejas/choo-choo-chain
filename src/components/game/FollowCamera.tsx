@@ -22,6 +22,7 @@ import {
   trainAngleRef,
   trainPrevAngleRef,
   trainSpeedRef,
+  cameraShakeRef,
 } from '../../trainState'
 import { angleDelta } from '../../utils/math'
 
@@ -40,8 +41,9 @@ export default function FollowCamera(): null {
   const smoothLookRef = useRef(new THREE.Vector3())
   const rollRef       = useRef(0)
   const readyRef      = useRef(false)
+  const shakeTimeRef  = useRef(0)
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     const pos   = trainPosRef.current
     const angle = trainAngleRef.current
     const speed = trainSpeedRef.current
@@ -102,7 +104,17 @@ export default function FollowCamera(): null {
     camera.up.copy(_upVec)
     camera.lookAt(smoothLookRef.current)
 
-    // ── 5. FOV boost stretch ──────────────────────────────────────────────
+    // ── 5. Camera shake on shielded obstacle hit ──────────────────────────
+    const trauma = cameraShakeRef.current
+    if (trauma > 0) {
+      shakeTimeRef.current += delta
+      const amp = trauma * trauma * 0.35
+      camera.position.x += Math.sin(shakeTimeRef.current * 38) * amp
+      camera.position.y += Math.sin(shakeTimeRef.current * 28 + 1.5) * amp
+      cameraShakeRef.current = Math.max(0, trauma - 3.5 * delta)
+    }
+
+    // ── 6. FOV boost stretch ──────────────────────────────────────────────
     const targetFov  = speed > TRAIN_BASE_SPEED + 1 ? BOOST_FOV : BASE_FOV
     const cam = camera as THREE.PerspectiveCamera
     if (cam.fov !== undefined) {

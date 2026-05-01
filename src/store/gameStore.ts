@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type {
   GamePhase,
   WagonType,
+  PowerUpType,
   WagonCounts,
   WagonEntity,
   ObstacleEntity,
@@ -85,7 +86,7 @@ interface GameActions {
   removePowerup:   (id: string) => void
   destroyObstacle: (id: string) => void
 
-  collectPowerup: (id: string, type: string) => void
+  collectPowerup: (id: string, type: PowerUpType) => void
 
   // Collision
   triggerGameOver: () => void
@@ -189,8 +190,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   collectPowerup: (id, type) => {
     const store = get()
     if (type === 'energy') store.addEnergy()
-    if (type === 'clock')  store.addTime()
-    if (type === 'shield') store.activateShield()
+    else if (type === 'clock')  store.addTime()
+    else if (type === 'shield') store.activateShield()
     store.removePowerup(id)
   },
 

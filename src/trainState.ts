@@ -30,3 +30,6 @@ export const trainHistoryRef: { current: THREE.Vector3[] } = { current: [] }
 
 /** Current tail length — mirrors tailTypes.length from the store. */
 export const trainTailLenRef: { current: number } = { current: 0 }
+
+/** Trauma value (0–1) for camera shake on shielded obstacle hit. Written by Train.tsx, decayed by FollowCamera.tsx. */
+export const cameraShakeRef: { current: number } = { current: 0 }

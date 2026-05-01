@@ -21,7 +21,7 @@ tileGeo.rotateX(-Math.PI / 2)
 const tileMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 1, metalness: 0 })
 
 // Scratch matrix — pure translation, no rotation/scale variation
-const _m = new THREE.Matrix4()
+const _tileMatrix = new THREE.Matrix4()
 
 export default function Ground(): null {
   const { scene } = useThree()
@@ -65,8 +65,8 @@ export default function Ground(): null {
         const ttz  = tz + dz
         const wx   = ttx * ZONE_SIZE + ZONE_SIZE / 2
         const wz   = ttz * ZONE_SIZE + ZONE_SIZE / 2
-        _m.makeTranslation(wx, 0, wz)
-        floor.setMatrixAt(fi, _m)
+        _tileMatrix.makeTranslation(wx, 0, wz)
+        floor.setMatrixAt(fi, _tileMatrix)
         floor.setColorAt(fi, PALETTE[(ttx + ttz) & 1])
         fi++
       }

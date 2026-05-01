@@ -23,7 +23,7 @@ export default function App(): JSX.Element {
   }, [phase])
 
   return (
-    <div className="app">
+    <div className="app" data-phase={phase}>
       <AudioManager />
 
       {phase === 'playing' && (

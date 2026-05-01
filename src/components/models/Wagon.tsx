@@ -1,4 +1,4 @@
-import { useRef, useMemo, useEffect, type JSX } from 'react'
+import { useRef, useEffect } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
@@ -6,7 +6,7 @@ import type { ObjectMap } from '@react-three/fiber'
 import type { GLTF } from 'three-stdlib'
 import { WAGON_COLORS } from '../../utils/constants'
 import { useGameStore } from '../../store/gameStore'
-import type { WagonEntity, WagonType } from '../../types'
+import type { WagonType } from '../../types'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 export const MODEL_PATH = `${import.meta.env.BASE_URL}models/train/train-carriage-dirt.glb`
@@ -94,54 +94,6 @@ function cachedYaw(id: string): number {
 // Safe to call in multiple components — useGLTF caches the result by URL.
 export function useWagonGLTF(): WagonGLTF {
   return useGLTF(MODEL_PATH) as WagonGLTF
-}
-
-// ─── Standalone Wagon ─────────────────────────────────────────────────────────
-// Single wagon with cargo coloured by type. Use for UI previews or debugging.
-// For game collectibles use <WagonInstances /> (5 draw calls for all wagons).
-export function Wagon({ type, position }: WagonEntity): JSX.Element {
-  const { nodes, materials } = useWagonGLTF()
-
-  const cargoMat = useMemo(() => {
-    const m = materials.colormap.clone()
-    m.color.copy(TYPE_COLORS[type])
-    m.roughness = 1
-    m.metalness = 0
-    return m
-  }, [materials.colormap, type])
-
-  return (
-    <group position={[position.x, 0, position.z]} scale={0.7} dispose={null}>
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes['train-carriage-dirt_1'].geometry}
-        material={materials.colormap}
-      >
-        <mesh
-          castShadow
-          receiveShadow
-          geometry={nodes['wheels-front'].geometry}
-          material={materials.colormap}
-          position={[0, 0.359, 0.6]}
-        />
-        <mesh
-          castShadow
-          receiveShadow
-          geometry={nodes['wheels-back'].geometry}
-          material={materials.colormap}
-          position={[0, 0.359, -0.6]}
-        />
-        <mesh
-          castShadow
-          receiveShadow
-          geometry={nodes.cargo.geometry}
-          material={cargoMat}
-          position={[0, 1.298, 0]}
-        />
-      </mesh>
-    </group>
-  )
 }
 
 // ─── WagonInstances ───────────────────────────────────────────────────────────
