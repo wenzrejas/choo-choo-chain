@@ -98,19 +98,21 @@ export default function IdleScreen(): JSX.Element {
           </button>
         </div>
       )}
-      <a
-        href="https://ko-fi.com/wenzrej"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="idle-screen__kofi"
-      >
-        <img
-          src={`${import.meta.env.BASE_URL}ko-fi-logo.svg`}
-          alt=""
-          aria-hidden="true"
-        />
-        Support me on Ko-fi
-      </a>
+      {loaded && (
+        <a
+          href="https://ko-fi.com/wenzrej"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="idle-screen__kofi"
+        >
+          <img
+            src={`${import.meta.env.BASE_URL}ko-fi-logo.svg`}
+            alt=""
+            aria-hidden="true"
+          />
+          Support me on Ko-fi
+        </a>
+      )}
     </div>
   );
 }
