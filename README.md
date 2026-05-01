@@ -1,12 +1,12 @@
 # 🚂 Choo-Choo-Chain!
 
-![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
-![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)
-![Three.js](https://img.shields.io/badge/Three.js-000000?logo=threedotjs&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![Three.js	](https://img.shields.io/badge/ThreeJs-black?style=for-the-badge&logo=three.js&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 
-> **An arcade-style 3D train game** — steer your locomotive through an infinite world, collect cargo wagons, grab power-ups, and survive the clock!
+**An arcade-style 3D train game** — steer your locomotive through an infinite world, collect cargo wagons, grab power-ups, and survive the clock!
 
 🎮 **[Play Now](https://wenzrejas.github.io/choo-choo-chain/)**
 
@@ -102,4 +102,4 @@ npm run preview
 
 ## 📄 License
 
-MIT
+[MIT](LICENSE) © 2026 Wenz Louie Rejas

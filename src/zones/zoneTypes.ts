@@ -1,20 +1,20 @@
-import type { WagonEntity, ObstacleEntity, PowerUpEntity } from '../types'
+import type { WagonEntity, ObstacleEntity, PowerUpEntity } from "../types";
 
 // ─── Zone coordinate ──────────────────────────────────────────────────────────
 
 export interface ZoneCoord {
-  zx: number   // zone column  (world_x = zx * ZONE_SIZE)
-  zz: number   // zone row     (world_z = zz * ZONE_SIZE)
+  zx: number; // zone column  (world_x = zx * ZONE_SIZE)
+  zz: number; // zone row     (world_z = zz * ZONE_SIZE)
 }
 
 /** Canonical string key for a zone: "zx:zz". */
-export const zoneKey = (zx: number, zz: number): string => `${zx}:${zz}`
+export const zoneKey = (zx: number, zz: number): string => `${zx}:${zz}`;
 
 /** Parse a zone key back into coords. */
 export const parseZoneKey = (key: string): ZoneCoord => {
-  const [zx, zz] = key.split(':').map(Number)
-  return { zx, zz }
-}
+  const [zx, zz] = key.split(":").map(Number);
+  return { zx, zz };
+};
 
 // ─── Zone content ─────────────────────────────────────────────────────────────
 
@@ -23,9 +23,9 @@ export const parseZoneKey = (key: string): ZoneCoord => {
  * Generated once per zone key and never changes (deterministic from coords).
  */
 export interface ZoneContent {
-  obstacles: ObstacleEntity[]
-  wagons:    WagonEntity[]
-  powerup:   PowerUpEntity | null
+  obstacles: ObstacleEntity[];
+  wagons: WagonEntity[];
+  powerup: PowerUpEntity | null;
 }
 
 /**
@@ -33,7 +33,7 @@ export interface ZoneContent {
  * a specific zone.  Used to remove them when the zone deactivates.
  */
 export interface ZoneEntityIds {
-  wagons:    string[]
-  obstacles: string[]
-  powerups:  string[]   // 0 or 1 entries
+  wagons: string[];
+  obstacles: string[];
+  powerups: string[]; // 0 or 1 entries
 }

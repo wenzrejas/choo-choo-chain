@@ -1,25 +1,33 @@
-import { Suspense, type JSX } from 'react'
-import { Canvas } from '@react-three/fiber'
-import { Sky }    from '@react-three/drei'
-import * as THREE from 'three'
+import { Suspense, type JSX } from "react";
+import { Canvas } from "@react-three/fiber";
+import { Sky } from "@react-three/drei";
+import * as THREE from "three";
 
-import { useMouseSteering }              from '../../hooks/useMouseSteering'
-import { useGameStore }                  from '../../store/gameStore'
+import { useMouseSteering } from "../../hooks/useMouseSteering";
+import { useGameStore } from "../../store/gameStore";
 
-import Ground                            from './Ground'
-import Train                             from './Train'
-import PowerUp, { PowerUpAnimator }      from './PowerUp'
-import FollowCamera                      from './FollowCamera'
-import ZoneManager                       from '../../zones/ZoneManager'
-import { WagonInstances }                from '../models/Wagon'
-import { TreeInstances, BoulderInstances, TreeLogInstances } from '../models/ObstacleInstances'
-import WindLines                         from './WindLines'
-import type { MouseNDC }                 from '../../types'
+import Ground from "./Ground";
+import Train from "./Train";
+import PowerUp, { PowerUpAnimator } from "./PowerUp";
+import FollowCamera from "./FollowCamera";
+import ZoneManager from "../../zones/ZoneManager";
+import { WagonInstances } from "../models/Wagon";
+import {
+  TreeInstances,
+  BoulderInstances,
+  TreeLogInstances,
+} from "../models/ObstacleInstances";
+import WindLines from "./WindLines";
+import type { MouseNDC } from "../../types";
 
-function Scene({ mouseRef }: { mouseRef: React.RefObject<MouseNDC> }): JSX.Element {
+function Scene({
+  mouseRef,
+}: {
+  mouseRef: React.RefObject<MouseNDC>;
+}): JSX.Element {
   // Only powerups still need a per-item React component (individual bob/spin).
   // Wagons and obstacles are fully instanced and read the store themselves.
-  const powerups = useGameStore((s) => s.powerups)
+  const powerups = useGameStore((s) => s.powerups);
 
   return (
     <>
@@ -43,7 +51,7 @@ function Scene({ mouseRef }: { mouseRef: React.RefObject<MouseNDC> }): JSX.Eleme
         shadow-camera-bottom={-60}
         shadow-bias={-0.0004}
       />
-      <hemisphereLight args={['#c9e8ff', '#7ec850', 0.7]} />
+      <hemisphereLight args={["#c9e8ff", "#7ec850", 0.7]} />
 
       {/* ── Sky ────────────────────────────────────────────────────────── */}
       <Sky
@@ -74,17 +82,17 @@ function Scene({ mouseRef }: { mouseRef: React.RefObject<MouseNDC> }): JSX.Eleme
         <PowerUp key={p.id} {...p} />
       ))}
     </>
-  )
+  );
 }
 
 export default function GameScene(): JSX.Element {
-  const mouseRef = useMouseSteering()
+  const mouseRef = useMouseSteering();
 
   return (
     <Canvas
       shadows={{ type: THREE.PCFShadowMap }}
-      style={{ position: 'absolute', inset: 0 }}
-      gl={{ antialias: true, powerPreference: 'high-performance' }}
+      style={{ position: "absolute", inset: 0 }}
+      gl={{ antialias: true, powerPreference: "high-performance" }}
       dpr={[1, 1.5]}
       performance={{ min: 0.5 }}
     >
@@ -92,5 +100,5 @@ export default function GameScene(): JSX.Element {
         <Scene mouseRef={mouseRef} />
       </Suspense>
     </Canvas>
-  )
+  );
 }

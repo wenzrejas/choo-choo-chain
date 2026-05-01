@@ -14,19 +14,21 @@ const ASSETS = [
   `${import.meta.env.BASE_URL}models/obstacles/tree-log-small.glb`,
   `${import.meta.env.BASE_URL}models/train/train-locomotive-b.glb`,
   `${import.meta.env.BASE_URL}models/train/train-carriage-dirt.glb`,
-]
+];
 
-export async function preloadAssets(onProgress: (pct: number) => void): Promise<void> {
-  let done = 0
+export async function preloadAssets(
+  onProgress: (pct: number) => void,
+): Promise<void> {
+  let done = 0;
   await Promise.all(
     ASSETS.map(async (url) => {
       try {
-        const res = await fetch(url)
-        await res.arrayBuffer()
+        const res = await fetch(url);
+        await res.arrayBuffer();
       } catch {}
-      done++
-      onProgress(Math.round((done / ASSETS.length) * 100))
+      done++;
+      onProgress(Math.round((done / ASSETS.length) * 100));
     }),
-  )
-  onProgress(100)
+  );
+  onProgress(100);
 }

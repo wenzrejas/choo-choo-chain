@@ -1,6 +1,6 @@
-import { useAudio } from './useAudio'
+import { useAudio } from "./useAudio";
 
 export default function AudioManager(): null {
-  useAudio()
-  return null
+  useAudio();
+  return null;
 }

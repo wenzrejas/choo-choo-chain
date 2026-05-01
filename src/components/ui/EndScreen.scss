@@ -1,4 +1,4 @@
-@use '../../styles/variables' as *;
+@use "../../styles/variables" as *;
 
 .end-screen {
   position: absolute;
@@ -21,8 +21,14 @@
     width: 100%;
     max-width: 620px;
 
-    @media (max-width: $bp-tablet) { gap: 24px; padding: 24px; }
-    @media (max-width: $bp-mobile) { gap: 16px; padding: 20px; }
+    @media (max-width: $bp-tablet) {
+      gap: 24px;
+      padding: 24px;
+    }
+    @media (max-width: $bp-mobile) {
+      gap: 16px;
+      padding: 20px;
+    }
   }
 
   // ── Title ───────────────────────────────────────────────────────────────────
@@ -32,8 +38,14 @@
     color: $c-gold;
     text-align: center;
 
-    @media (max-width: $bp-tablet) { font-size: 60px; letter-spacing: 3px; }
-    @media (max-width: $bp-mobile) { font-size: 44px; letter-spacing: 2px; }
+    @media (max-width: $bp-tablet) {
+      font-size: 60px;
+      letter-spacing: 3px;
+    }
+    @media (max-width: $bp-mobile) {
+      font-size: 44px;
+      letter-spacing: 2px;
+    }
   }
 
   // ── Score ───────────────────────────────────────────────────────────────────
@@ -51,7 +63,10 @@
     font-family: $f-body;
     font-weight: 700;
 
-    @media (max-width: $bp-mobile) { font-size: 11px; letter-spacing: 4px; }
+    @media (max-width: $bp-mobile) {
+      font-size: 11px;
+      letter-spacing: 4px;
+    }
   }
 
   &__score-value {
@@ -61,8 +76,12 @@
     font-variant-numeric: tabular-nums;
     letter-spacing: 0;
 
-    @media (max-width: $bp-tablet) { font-size: 72px; }
-    @media (max-width: $bp-mobile) { font-size: 54px; }
+    @media (max-width: $bp-tablet) {
+      font-size: 72px;
+    }
+    @media (max-width: $bp-mobile) {
+      font-size: 54px;
+    }
   }
 
   // ── Wagon breakdown ─────────────────────────────────────────────────────────
@@ -75,8 +94,14 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     padding: 20px 0;
 
-    @media (max-width: $bp-tablet) { gap: 11px; padding: 16px 0; }
-    @media (max-width: $bp-mobile) { gap: 9px; padding: 12px 0; }
+    @media (max-width: $bp-tablet) {
+      gap: 11px;
+      padding: 16px 0;
+    }
+    @media (max-width: $bp-mobile) {
+      gap: 9px;
+      padding: 12px 0;
+    }
   }
 
   &__row {
@@ -90,19 +115,31 @@
     align-items: center;
     gap: 14px;
 
-    @media (max-width: $bp-mobile) { gap: 10px; }
+    @media (max-width: $bp-mobile) {
+      gap: 10px;
+    }
   }
 
   &__type-name {
     font-size: 18px;
     letter-spacing: 1px;
 
-    @media (max-width: $bp-tablet) { font-size: 16px; }
-    @media (max-width: $bp-mobile) { font-size: 14px; }
+    @media (max-width: $bp-tablet) {
+      font-size: 16px;
+    }
+    @media (max-width: $bp-mobile) {
+      font-size: 14px;
+    }
 
-    &[data-type='copper'] { color: $c-copper; }
-    &[data-type='silver'] { color: $c-silver; }
-    &[data-type='gold']   { color: $c-gold-mid; }
+    &[data-type="copper"] {
+      color: $c-copper;
+    }
+    &[data-type="silver"] {
+      color: $c-silver;
+    }
+    &[data-type="gold"] {
+      color: $c-gold-mid;
+    }
   }
 
   &__type-count {
@@ -111,7 +148,9 @@
     font-family: $f-body;
     font-weight: 700;
 
-    @media (max-width: $bp-mobile) { font-size: 13px; }
+    @media (max-width: $bp-mobile) {
+      font-size: 13px;
+    }
   }
 
   &__row-pts {
@@ -121,7 +160,9 @@
     font-weight: 700;
     letter-spacing: 1px;
 
-    @media (max-width: $bp-mobile) { font-size: 13px; }
+    @media (max-width: $bp-mobile) {
+      font-size: 13px;
+    }
   }
 
   // ── Buttons ─────────────────────────────────────────────────────────────────
@@ -130,32 +171,58 @@
     flex-direction: column;
     gap: 12px;
 
-    @media (max-width: $bp-mobile) { gap: 8px; }
+    @media (max-width: $bp-mobile) {
+      gap: 8px;
+    }
   }
 
   &__btn-primary {
     @include btn-primary;
 
-    @media (max-width: $bp-tablet) { padding: 12px 44px; font-size: 18px; }
-    @media (max-width: $bp-mobile) { padding: 11px 32px; font-size: 16px; letter-spacing: 1.5px; }
+    @media (max-width: $bp-tablet) {
+      padding: 12px 44px;
+      font-size: 18px;
+    }
+    @media (max-width: $bp-mobile) {
+      padding: 11px 32px;
+      font-size: 16px;
+      letter-spacing: 1.5px;
+    }
   }
 
   &__btn-secondary {
     padding: 14px 0;
     font-size: 20px;
     letter-spacing: 3px;
-    cursor: url('/hand-point.svg') 8 0, pointer;
+    cursor:
+      url("/hand-point.svg") 8 0,
+      pointer;
     background: transparent;
     color: $c-muted;
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 20px;
     font-family: $f-display;
-    transition: transform 0.1s ease, filter 0.1s ease;
+    transition:
+      transform 0.1s ease,
+      filter 0.1s ease;
 
-    @media (max-width: $bp-tablet) { font-size: 18px; padding: 12px 0; }
-    @media (max-width: $bp-mobile) { font-size: 15px; padding: 10px 0; letter-spacing: 2px; }
+    @media (max-width: $bp-tablet) {
+      font-size: 18px;
+      padding: 12px 0;
+    }
+    @media (max-width: $bp-mobile) {
+      font-size: 15px;
+      padding: 10px 0;
+      letter-spacing: 2px;
+    }
 
-    &:hover  { transform: scale(1.04); filter: brightness(1.5); }
-    &:active { transform: scale(0.97); filter: brightness(0.8); }
+    &:hover {
+      transform: scale(1.04);
+      filter: brightness(1.5);
+    }
+    &:active {
+      transform: scale(0.97);
+      filter: brightness(0.8);
+    }
   }
 }

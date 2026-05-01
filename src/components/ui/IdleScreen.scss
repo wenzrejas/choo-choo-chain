@@ -1,4 +1,4 @@
-@use '../../styles/variables' as *;
+@use "../../styles/variables" as *;
 
 .idle-screen {
   position: absolute;
@@ -21,7 +21,10 @@
     max-width: 420px;
     padding: 0 32px;
 
-    @media (max-width: $bp-mobile) { gap: 14px; padding: 0 24px; }
+    @media (max-width: $bp-mobile) {
+      gap: 14px;
+      padding: 0 24px;
+    }
   }
 
   &__loading-label {
@@ -31,7 +34,10 @@
     font-family: $f-body;
     font-weight: 700;
 
-    @media (max-width: $bp-mobile) { font-size: 11px; letter-spacing: 4px; }
+    @media (max-width: $bp-mobile) {
+      font-size: 11px;
+      letter-spacing: 4px;
+    }
   }
 
   &__loading-pct {
@@ -41,8 +47,12 @@
     letter-spacing: 0;
     font-variant-numeric: tabular-nums;
 
-    @media (max-width: $bp-tablet) { font-size: 52px; }
-    @media (max-width: $bp-mobile) { font-size: 40px; }
+    @media (max-width: $bp-tablet) {
+      font-size: 52px;
+    }
+    @media (max-width: $bp-mobile) {
+      font-size: 40px;
+    }
   }
 
   &__track {
@@ -73,19 +83,88 @@
     max-width: 620px;
     margin-top: -200px;
 
-    @media (max-width: $bp-tablet) { gap: 48px; margin-top: -120px; padding: 24px; }
-    @media (max-width: $bp-mobile) { gap: 32px; margin-top: -60px; padding: 20px; }
+    @media (max-width: $bp-tablet) {
+      gap: 48px;
+      margin-top: -120px;
+      padding: 24px;
+    }
+    @media (max-width: $bp-mobile) {
+      gap: 32px;
+      margin-top: -60px;
+      padding: 20px;
+    }
   }
 
   &__logo {
     width: 100%;
   }
 
+  // ── Ko-fi link ──────────────────────────────────────────────────────────────
+  &__kofi {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.55);
+    font-family: $f-body;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      background 0.2s ease,
+      color 0.2s ease,
+      border-color 0.2s ease;
+
+    img {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+
+    &:hover {
+      background: rgba(255, 94, 91, 0.12);
+      border-color: rgba(255, 94, 91, 0.4);
+      color: rgba(255, 255, 255, 0.9);
+
+      img {
+        transform: scale(1.15);
+      }
+    }
+
+    @media (max-width: $bp-mobile) {
+      font-size: 11px;
+      padding: 7px 14px;
+      bottom: 20px;
+
+      img {
+        width: 15px;
+        height: 15px;
+      }
+    }
+  }
+
   // ── Start button ────────────────────────────────────────────────────────────
   &__btn {
     @include btn-primary;
 
-    @media (max-width: $bp-tablet) { padding: 12px 44px; font-size: 18px; }
-    @media (max-width: $bp-mobile) { padding: 11px 32px; font-size: 16px; letter-spacing: 1.5px; }
+    @media (max-width: $bp-tablet) {
+      padding: 12px 44px;
+      font-size: 18px;
+    }
+    @media (max-width: $bp-mobile) {
+      padding: 11px 32px;
+      font-size: 16px;
+      letter-spacing: 1.5px;
+    }
   }
 }

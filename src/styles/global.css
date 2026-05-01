@@ -6,7 +6,9 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  cursor: url('/pointer-toon.svg') 12 4, auto;
+  cursor:
+    url("/pointer-toon.svg") 12 4,
+    auto;
 }
 
 html {
@@ -20,4 +22,3 @@ body,
   height: 100%;
   overflow: hidden;
 }
-
