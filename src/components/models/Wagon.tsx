@@ -157,7 +157,7 @@ export function WagonInstances(): null {
 
     [body, wf, wb, cargo].forEach((m) => {
       m.count = 0;
-      m.castShadow = true;
+      m.castShadow = false;
       m.receiveShadow = true;
       m.frustumCulled = false;
     });

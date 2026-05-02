@@ -70,14 +70,14 @@ const vertexShader = /* glsl */ `
 
     // Bright window sweeping from back (-1) to front (+2) as progress goes 0→1
     float windowPos = uProgress * 3.0 - 1.0;
-    float window    = smoothstep(0.0, 1.0, 1.0 - abs(aRatio - windowPos));
+    float window = smoothstep(0.0, 1.0, 1.0 - abs(aRatio - windowPos));
 
     float width = uThickness * envelope * window;
-    vAlpha      = envelope * window;
+    vAlpha = envelope * window;
 
     // Expand in view-space X so the ribbon always faces the camera
     vec4 mvPos  = modelViewMatrix * vec4(position, 1.0);
-    mvPos.x    += aSide * width;
+    mvPos.x += aSide * width;
     gl_Position = projectionMatrix * mvPos;
   }
 `;

@@ -1,10 +1,12 @@
-import { Suspense, type JSX } from "react";
-import { Canvas } from "@react-three/fiber";
+import { useRef, Suspense, type JSX } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Sky } from "@react-three/drei";
+import { Perf } from "r3f-perf";
 import * as THREE from "three";
 
 import { useMouseSteering } from "../../hooks/useMouseSteering";
 import { useGameStore } from "../../store/gameStore";
+import { trainPosRef } from "../../trainState";
 
 import Ground from "./Ground";
 import Train from "./Train";
@@ -20,6 +22,41 @@ import {
 import WindLines from "./WindLines";
 import type { MouseNDC } from "../../types";
 
+function SunLight(): JSX.Element {
+  const lightRef = useRef<THREE.DirectionalLight>(null);
+  const { gl } = useThree();
+  const frameCount = useRef(0);
+
+  useFrame(() => {
+    const light = lightRef.current;
+    if (!light) return;
+    const { x, z } = trainPosRef.current;
+    light.position.set(x + 30, 50, z + 20);
+    light.target.position.set(x, 0, z);
+    light.target.updateMatrixWorld();
+
+    if (++frameCount.current % 2 === 0) gl.shadowMap.needsUpdate = true;
+  });
+
+  return (
+    <directionalLight
+      ref={lightRef}
+      position={[30, 50, 20]}
+      intensity={1.6}
+      color="#fff8e8"
+      castShadow
+      shadow-mapSize={[1024, 1024]}
+      shadow-camera-near={0.5}
+      shadow-camera-far={80}
+      shadow-camera-left={-40}
+      shadow-camera-right={40}
+      shadow-camera-top={40}
+      shadow-camera-bottom={-40}
+      shadow-bias={-0.0004}
+    />
+  );
+}
+
 function Scene({
   mouseRef,
 }: {
@@ -34,23 +71,11 @@ function Scene({
       {/* ── Systems ────────────────────────────────────────────────────── */}
       <ZoneManager />
       <FollowCamera />
+      {window.location.hash === "#debug" && <Perf position="bottom-left" />}
 
       {/* ── Lighting ───────────────────────────────────────────────────── */}
       <ambientLight intensity={1.1} color="#fffdf0" />
-      <directionalLight
-        position={[30, 50, 20]}
-        intensity={1.6}
-        color="#fff8e8"
-        castShadow
-        shadow-mapSize={[2048, 2048]}
-        shadow-camera-near={0.5}
-        shadow-camera-far={120}
-        shadow-camera-left={-60}
-        shadow-camera-right={60}
-        shadow-camera-top={60}
-        shadow-camera-bottom={-60}
-        shadow-bias={-0.0004}
-      />
+      <SunLight />
       <hemisphereLight args={["#c9e8ff", "#7ec850", 0.7]} />
 
       {/* ── Sky ────────────────────────────────────────────────────────── */}

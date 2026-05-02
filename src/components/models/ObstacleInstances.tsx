@@ -39,9 +39,6 @@ function collectMeshParts(root: THREE.Group): MeshPart[] {
 }
 
 // ─── Shared instancing hook ───────────────────────────────────────────────────
-// Renders all non-destroyed obstacles of a given type as instanced draw calls —
-// one per mesh part in the GLTF. Matrices rebuilt only when the obstacles array
-// reference changes (Zustand emits a new reference on every mutation).
 function useGLTFObstacleInstances(
   modelPath: string,
   obstacleType: ObstacleType,

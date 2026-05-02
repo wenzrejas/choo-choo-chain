@@ -69,7 +69,6 @@ export default function Train({ mouseRef }: TrainProps): JSX.Element {
 
   // Reset module-level shared refs on each new game session so FollowCamera
   // snaps to the correct spawn position instead of the stale last-game position.
-  // useLayoutEffect fires after React commits but before the first useFrame.
   useLayoutEffect(() => {
     trainPosRef.current.copy(posRef.current);
     trainAngleRef.current = angleRef.current;
@@ -80,20 +79,9 @@ export default function Train({ mouseRef }: TrainProps): JSX.Element {
   }, []);
 
   // ── React subscription for shield visual only (Locomotive re-render) ──────
-  // We intentionally limit React subscriptions to values that drive JSX.
-  // Everything else is read from useGameStore.getState() inside useFrame.
   const shieldActive = useGameStore((s) => s.shieldActive);
 
   // ── Imperative InstancedMeshes — never put in JSX ────────────────────────
-  //
-  // Root cause of the disappearing tail: putting <instancedMesh args={[...]} />
-  // in JSX creates a NEW array literal every render. R3F compares the array
-  // reference, sees it changed, and RECONSTRUCTS the InstancedMesh — wiping
-  // all instance matrices back to identity (world origin) for that frame.
-  //
-  // By creating and managing the meshes ourselves we bypass R3F reconciliation
-  // entirely. Four meshes render the full wagon model per tail segment:
-  // body, wheels-front, wheels-back, cargo (type-coloured via setColorAt).
   useEffect(() => {
     const body = new THREE.InstancedMesh(
       nodes["train-carriage-dirt_1"].geometry,
@@ -141,13 +129,6 @@ export default function Train({ mouseRef }: TrainProps): JSX.Element {
     if (!groupRef.current) return;
 
     // ── Read ALL dynamic game state fresh from the store ───────────────────
-    //
-    // Root cause #2: values from useGameStore((s) => s.x) are stale closures
-    // bound at the last React render. Between renders, collectWagon / store
-    // mutations have already run but the closure hasn't updated yet.
-    //
-    // useGameStore.getState() always returns the live store state — no
-    // closures, no stale reads, no React scheduler involvement.
     const {
       isBoosting,
       tailTypes,
@@ -227,8 +208,6 @@ export default function Train({ mouseRef }: TrainProps): JSX.Element {
     const history = historyRef.current;
 
     if (body && wf && wb && cargo) {
-      // Set count first — always, even if 0 — using the LIVE tailLength.
-      // This is the authoritative write; nothing else touches these counts.
       body.count = wf.count = wb.count = cargo.count = tailLength;
 
       for (let i = 0; i < tailLength; i++) {
@@ -347,6 +326,5 @@ export default function Train({ mouseRef }: TrainProps): JSX.Element {
   });
 
   // Only the locomotive uses JSX — the InstancedMesh is managed imperatively
-  // above and never appears here, so R3F can never reconcile or reconstruct it.
   return <TrainHead groupRef={groupRef} shieldActive={shieldActive} />;
 }

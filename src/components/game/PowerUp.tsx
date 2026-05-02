@@ -159,24 +159,21 @@ export function PowerUpAnimator(): null {
 function EnergyShape(): JSX.Element {
   return (
     <group>
-      <mesh geometry={battBodyGeo} material={energyMat} castShadow />
+      <mesh geometry={battBodyGeo} material={energyMat} />
       <mesh
         geometry={battCapGeo}
         material={battCapMat}
         position={[0, 0.55, 0]}
-        castShadow
       />
       <mesh
         geometry={battCapGeo}
         material={battCapMat}
         position={[0, -0.55, 0]}
-        castShadow
       />
       <mesh
         geometry={battTermGeo}
         material={battCapMat}
         position={[0, 0.69, 0]}
-        castShadow
       />
     </group>
   );
@@ -185,7 +182,7 @@ function EnergyShape(): JSX.Element {
 function ClockShape(): JSX.Element {
   return (
     <group>
-      <mesh geometry={clockBodyGeo} material={clockBodyMat} castShadow />
+      <mesh geometry={clockBodyGeo} material={clockBodyMat} />
       <mesh
         geometry={clockFaceGeo}
         material={clockFaceMat}
@@ -214,7 +211,7 @@ function ClockShape(): JSX.Element {
 function ShieldShape(): JSX.Element {
   return (
     <group>
-      <mesh geometry={shieldExtrudeGeo} material={shieldMat} castShadow />
+      <mesh geometry={shieldExtrudeGeo} material={shieldMat} />
       <mesh
         geometry={shieldCrossVGeo}
         material={crossMat}
@@ -229,7 +226,6 @@ function ShieldShape(): JSX.Element {
         geometry={shieldBossGeo}
         material={shieldBossMat}
         position={[0, 0.04, 0.14]}
-        castShadow
       />
     </group>
   );

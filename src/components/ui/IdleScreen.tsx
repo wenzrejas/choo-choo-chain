@@ -110,7 +110,7 @@ export default function IdleScreen(): JSX.Element {
             alt=""
             aria-hidden="true"
           />
-          Support me on Ko-fi
+          Buy me a coffee
         </a>
       )}
     </div>
